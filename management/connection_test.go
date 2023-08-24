@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 var connectionTestCases = []connectionTestCase{
@@ -171,7 +171,8 @@ var connectionTestCases = []connectionTestCase{
 		},
 		options: &ConnectionOptionsSAML{
 			SignInEndpoint: auth0.String("https://saml.identity/provider"),
-			SigningCert: auth0.String(`-----BEGIN CERTIFICATE-----
+			SigningCert: auth0.String(
+				`-----BEGIN CERTIFICATE-----
 MIID6TCCA1ICAQEwDQYJKoZIhvcNAQEFBQAwgYsxCzAJBgNVBAYTAlVTMRMwEQYD
 VQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYDVQQK
 EwtHb29nbGUgSW5jLjEMMAoGA1UECxMDRW5nMQwwCgYDVQQDEwNhZ2wxHTAbBgkq
@@ -193,7 +194,8 @@ Pomjn71GNTtDeWAXibjCgdL6iHACCF6Htbl0zGlG0OAK+bdn0QIDAQABMA0GCSqG
 SIb3DQEBBQUAA4GBAOKnQDtqBV24vVqvesL5dnmyFpFPXBn3WdFfwD6DzEb21UVG
 5krmJiu+ViipORJPGMkgoL6BjU21XI95VQbun5P8vvg8Z+FnFsvRFY3e1CCzAVQY
 ZsUkLw2I7zI/dNlWdB8Xp7v+3w9sX5N3J/WuJ1KOO5m26kRlHQo7EzT3974g
------END CERTIFICATE-----`),
+-----END CERTIFICATE-----`,
+			),
 			TenantDomain: auth0.String("example.com"),
 			FieldsMap: map[string]interface{}{
 				"email":       "EmailAddress",
@@ -232,7 +234,8 @@ ZsUkLw2I7zI/dNlWdB8Xp7v+3w9sX5N3J/WuJ1KOO5m26kRlHQo7EzT3974g
 			Strategy: auth0.String("adfs"),
 		},
 		options: &ConnectionOptionsADFS{
-			FedMetadataXML: auth0.String(`<?xml version="1.0" encoding="utf-8"?>
+			FedMetadataXML: auth0.String(
+				`<?xml version="1.0" encoding="utf-8"?>
 <EntityDescriptor entityID="https://example.com"
                   xmlns="urn:oasis:names:tc:SAML:2.0:metadata">
     <RoleDescriptor xsi:type="fed:ApplicationServiceType"
@@ -262,7 +265,8 @@ ZsUkLw2I7zI/dNlWdB8Xp7v+3w9sX5N3J/WuJ1KOO5m26kRlHQo7EzT3974g
                              Location="https://adfs.provider/sign_in"/>
     </IDPSSODescriptor>
 </EntityDescriptor>
-`),
+`,
+			),
 			UpstreamParams: map[string]interface{}{
 				"screen_name": map[string]interface{}{
 					"alias": "login_hint",
@@ -402,7 +406,8 @@ ZsUkLw2I7zI/dNlWdB8Xp7v+3w9sX5N3J/WuJ1KOO5m26kRlHQo7EzT3974g
 		},
 		options: &ConnectionOptionsPingFederate{
 			PingFederateBaseURL: auth0.String("https://ping.example.com"),
-			SigningCert: auth0.String(`-----BEGIN CERTIFICATE-----
+			SigningCert: auth0.String(
+				`-----BEGIN CERTIFICATE-----
 MIID6TCCA1ICAQEwDQYJKoZIhvcNAQEFBQAwgYsxCzAJBgNVBAYTAlVTMRMwEQYD
 VQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1TYW4gRnJhbmNpc2NvMRQwEgYDVQQK
 EwtHb29nbGUgSW5jLjEMMAoGA1UECxMDRW5nMQwwCgYDVQQDEwNhZ2wxHTAbBgkq
@@ -424,7 +429,8 @@ Pomjn71GNTtDeWAXibjCgdL6iHACCF6Htbl0zGlG0OAK+bdn0QIDAQABMA0GCSqG
 SIb3DQEBBQUAA4GBAOKnQDtqBV24vVqvesL5dnmyFpFPXBn3WdFfwD6DzEb21UVG
 5krmJiu+ViipORJPGMkgoL6BjU21XI95VQbun5P8vvg8Z+FnFsvRFY3e1CCzAVQY
 ZsUkLw2I7zI/dNlWdB8Xp7v+3w9sX5N3J/WuJ1KOO5m26kRlHQo7EzT3974g
------END CERTIFICATE-----`),
+-----END CERTIFICATE-----`,
+			),
 			SignSAMLRequest:    auth0.Bool(true),
 			SignatureAlgorithm: auth0.String("rsa-sha256"),
 			DigestAlgorithm:    auth0.String("sha256"),
@@ -440,114 +446,132 @@ type connectionTestCase struct {
 
 func TestConnectionManager_Create(t *testing.T) {
 	for _, testCase := range connectionTestCases {
-		t.Run("It can successfully create a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully create a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			expectedConnection := testCase.connection
-			expectedConnection.Options = testCase.options
+				expectedConnection := testCase.connection
+				expectedConnection.Options = testCase.options
 
-			err := api.Connection.Create(context.Background(), &expectedConnection)
+				err := api.Connection.Create(context.Background(), &expectedConnection)
 
-			assert.NoError(t, err)
-			assert.NotEmpty(t, expectedConnection.GetID())
-			assert.IsType(t, testCase.options, expectedConnection.Options)
+				assert.NoError(t, err)
+				assert.NotEmpty(t, expectedConnection.GetID())
+				assert.IsType(t, testCase.options, expectedConnection.Options)
 
-			t.Cleanup(func() {
-				cleanupConnection(t, expectedConnection.GetID())
-			})
-		})
+				t.Cleanup(
+					func() {
+						cleanupConnection(t, expectedConnection.GetID())
+					},
+				)
+			},
+		)
 	}
 }
 
 func TestConnectionManager_Read(t *testing.T) {
 	for _, testCase := range connectionTestCases {
-		t.Run("It can successfully read a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully read a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			expectedConnection := givenAConnection(t, testCase)
+				expectedConnection := givenAConnection(t, testCase)
 
-			actualConnection, err := api.Connection.Read(context.Background(), expectedConnection.GetID())
+				actualConnection, err := api.Connection.Read(context.Background(), expectedConnection.GetID())
 
-			assert.NoError(t, err)
-			assert.Equal(t, expectedConnection.GetID(), actualConnection.GetID())
-			assert.Equal(t, expectedConnection.GetName(), actualConnection.GetName())
-			assert.Equal(t, expectedConnection.GetStrategy(), actualConnection.GetStrategy())
-			assert.IsType(t, testCase.options, actualConnection.Options)
+				assert.NoError(t, err)
+				assert.Equal(t, expectedConnection.GetID(), actualConnection.GetID())
+				assert.Equal(t, expectedConnection.GetName(), actualConnection.GetName())
+				assert.Equal(t, expectedConnection.GetStrategy(), actualConnection.GetStrategy())
+				assert.IsType(t, testCase.options, actualConnection.Options)
 
-			t.Cleanup(func() {
-				cleanupConnection(t, expectedConnection.GetID())
-			})
-		})
+				t.Cleanup(
+					func() {
+						cleanupConnection(t, expectedConnection.GetID())
+					},
+				)
+			},
+		)
 	}
 }
 
 func TestConnectionManager_ReadByName(t *testing.T) {
 	for _, testCase := range connectionTestCases {
-		t.Run("It can successfully find a "+testCase.name+" by its name", func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully find a "+testCase.name+" by its name", func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			expectedConnection := givenAConnection(t, testCase)
+				expectedConnection := givenAConnection(t, testCase)
 
-			actualConnection, err := api.Connection.ReadByName(context.Background(), expectedConnection.GetName())
+				actualConnection, err := api.Connection.ReadByName(context.Background(), expectedConnection.GetName())
 
-			assert.NoError(t, err)
-			assert.Equal(t, expectedConnection.GetID(), actualConnection.GetID())
-			assert.Equal(t, expectedConnection.GetName(), actualConnection.GetName())
-			assert.Equal(t, expectedConnection.GetStrategy(), actualConnection.GetStrategy())
-			assert.IsType(t, testCase.options, actualConnection.Options)
+				assert.NoError(t, err)
+				assert.Equal(t, expectedConnection.GetID(), actualConnection.GetID())
+				assert.Equal(t, expectedConnection.GetName(), actualConnection.GetName())
+				assert.Equal(t, expectedConnection.GetStrategy(), actualConnection.GetStrategy())
+				assert.IsType(t, testCase.options, actualConnection.Options)
 
-			t.Cleanup(func() {
-				cleanupConnection(t, expectedConnection.GetID())
-			})
-		})
+				t.Cleanup(
+					func() {
+						cleanupConnection(t, expectedConnection.GetID())
+					},
+				)
+			},
+		)
 	}
 
-	t.Run("throw an error when connection name is empty", func(t *testing.T) {
-		actualConnection, err := api.Connection.ReadByName(context.Background(), "")
+	t.Run(
+		"throw an error when connection name is empty", func(t *testing.T) {
+			actualConnection, err := api.Connection.ReadByName(context.Background(), "")
 
-		assert.EqualError(t, err, "400 Bad Request: Name cannot be empty")
-		assert.Empty(t, actualConnection)
-	})
+			assert.EqualError(t, err, "400 Bad Request: Name cannot be empty")
+			assert.Empty(t, actualConnection)
+		},
+	)
 }
 
 func TestConnectionManager_Update(t *testing.T) {
 	for _, testCase := range connectionTestCases {
-		t.Run("It can successfully update a "+testCase.name, func(t *testing.T) {
-			if testCase.connection.GetStrategy() == "oidc" ||
-				testCase.connection.GetStrategy() == "samlp" ||
-				testCase.connection.GetStrategy() == "okta" ||
-				testCase.connection.GetStrategy() == "adfs" ||
-				testCase.connection.GetStrategy() == "pingfederate" {
-				t.Skip("Skipping because we can't create an oidc, okta, samlp, adfs, or pingfederate connection with no options")
-			}
+		t.Run(
+			"It can successfully update a "+testCase.name, func(t *testing.T) {
+				if testCase.connection.GetStrategy() == "oidc" ||
+					testCase.connection.GetStrategy() == "samlp" ||
+					testCase.connection.GetStrategy() == "okta" ||
+					testCase.connection.GetStrategy() == "adfs" ||
+					testCase.connection.GetStrategy() == "pingfederate" {
+					t.Skip("Skipping because we can't create an oidc, okta, samlp, adfs, or pingfederate connection with no options")
+				}
 
-			configureHTTPTestRecordings(t)
+				configureHTTPTestRecordings(t)
 
-			connection := givenAConnection(t, connectionTestCase{connection: testCase.connection})
+				connection := givenAConnection(t, connectionTestCase{connection: testCase.connection})
 
-			connectionWithUpdatedOptions := &Connection{
-				Options: testCase.options,
-			}
+				connectionWithUpdatedOptions := &Connection{
+					Options: testCase.options,
+				}
 
-			err := api.Connection.Update(context.Background(), connection.GetID(), connectionWithUpdatedOptions)
-			assert.NoError(t, err)
+				err := api.Connection.Update(context.Background(), connection.GetID(), connectionWithUpdatedOptions)
+				assert.NoError(t, err)
 
-			actualConnection, err := api.Connection.Read(context.Background(), connection.GetID())
-			assert.NoError(t, err)
-			assert.ObjectsAreEqualValues(testCase.options, actualConnection.Options)
-		})
+				actualConnection, err := api.Connection.Read(context.Background(), connection.GetID())
+				assert.NoError(t, err)
+				assert.ObjectsAreEqualValues(testCase.options, actualConnection.Options)
+			},
+		)
 	}
 }
 
 func TestConnectionManager_Delete(t *testing.T) {
 	configureHTTPTestRecordings(t)
 
-	expectedConnection := givenAConnection(t, connectionTestCase{
-		connection: Connection{
-			Name:     auth0.Stringf("Test-Auth0-Connection-%d", time.Now().Unix()),
-			Strategy: auth0.String("auth0"),
+	expectedConnection := givenAConnection(
+		t, connectionTestCase{
+			connection: Connection{
+				Name:     auth0.Stringf("Test-Auth0-Connection-%d", time.Now().Unix()),
+				Strategy: auth0.String("auth0"),
+			},
 		},
-	})
+	)
 
 	err := api.Connection.Delete(context.Background(), expectedConnection.GetID())
 	assert.NoError(t, err)
@@ -562,12 +586,14 @@ func TestConnectionManager_Delete(t *testing.T) {
 func TestConnectionManager_List(t *testing.T) {
 	configureHTTPTestRecordings(t)
 
-	expectedConnection := givenAConnection(t, connectionTestCase{
-		connection: Connection{
-			Name:     auth0.Stringf("Test-Auth0-Connection-List-%d", time.Now().Unix()),
-			Strategy: auth0.String("auth0"),
+	expectedConnection := givenAConnection(
+		t, connectionTestCase{
+			connection: Connection{
+				Name:     auth0.Stringf("Test-Auth0-Connection-List-%d", time.Now().Unix()),
+				Strategy: auth0.String("auth0"),
+			},
 		},
-	})
+	)
 
 	needle := &Connection{
 		ID:                 expectedConnection.ID,
@@ -579,45 +605,53 @@ func TestConnectionManager_List(t *testing.T) {
 }
 
 func TestConnectionOptionsScopes(t *testing.T) {
-	t.Run("It can successfully set the scopes on the options of a OIDC connection", func(t *testing.T) {
-		options := &ConnectionOptionsOIDC{}
+	t.Run(
+		"It can successfully set the scopes on the options of a OIDC connection", func(t *testing.T) {
+			options := &ConnectionOptionsOIDC{}
 
-		options.SetScopes(true, "foo", "bar", "baz")
-		assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
+			options.SetScopes(true, "foo", "bar", "baz")
+			assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
 
-		options.SetScopes(false, "foo", "baz")
-		assert.Equal(t, []string{"bar"}, options.Scopes())
-	})
+			options.SetScopes(false, "foo", "baz")
+			assert.Equal(t, []string{"bar"}, options.Scopes())
+		},
+	)
 
-	t.Run("It can successfully set the scopes on the options of an OAuth2 connection", func(t *testing.T) {
-		options := &ConnectionOptionsOAuth2{}
+	t.Run(
+		"It can successfully set the scopes on the options of an OAuth2 connection", func(t *testing.T) {
+			options := &ConnectionOptionsOAuth2{}
 
-		options.SetScopes(true, "foo", "bar", "baz")
-		assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
+			options.SetScopes(true, "foo", "bar", "baz")
+			assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
 
-		options.SetScopes(false, "foo", "baz")
-		assert.Equal(t, []string{"bar"}, options.Scopes())
-	})
+			options.SetScopes(false, "foo", "baz")
+			assert.Equal(t, []string{"bar"}, options.Scopes())
+		},
+	)
 
-	t.Run("It can successfully set the scopes on the options of an Okta connection", func(t *testing.T) {
-		options := &ConnectionOptionsOkta{}
+	t.Run(
+		"It can successfully set the scopes on the options of an Okta connection", func(t *testing.T) {
+			options := &ConnectionOptionsOkta{}
 
-		options.SetScopes(true, "foo", "bar", "baz")
-		assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
+			options.SetScopes(true, "foo", "bar", "baz")
+			assert.Equal(t, []string{"bar", "baz", "foo"}, options.Scopes())
 
-		options.SetScopes(false, "foo", "baz")
-		assert.Equal(t, []string{"bar"}, options.Scopes())
-	})
+			options.SetScopes(false, "foo", "baz")
+			assert.Equal(t, []string{"bar"}, options.Scopes())
+		},
+	)
 }
 
 func TestGoogleOauth2Connection_MarshalJSON(t *testing.T) {
 	var emptySlice []string
 	for connection, expected := range map[*ConnectionOptionsGoogleOAuth2]string{
-		{AllowedAudiences: nil}:                                              `{}`,
-		{AllowedAudiences: &emptySlice}:                                      `{"allowed_audiences":null}`,
-		{AllowedAudiences: &[]string{}}:                                      `{"allowed_audiences":[]}`,
-		{AllowedAudiences: &[]string{"foo", "bar"}}:                          `{"allowed_audiences":["foo","bar"]}`,
-		{AllowedAudiences: &[]string{"foo", "bar"}, Email: auth0.Bool(true)}: `{"email":true,"allowed_audiences":["foo","bar"]}`,
+		{AllowedAudiences: nil}:                     `{}`,
+		{AllowedAudiences: &emptySlice}:             `{"allowed_audiences":null}`,
+		{AllowedAudiences: &[]string{}}:             `{"allowed_audiences":[]}`,
+		{AllowedAudiences: &[]string{"foo", "bar"}}: `{"allowed_audiences":["foo","bar"]}`,
+		{
+			AllowedAudiences: &[]string{"foo", "bar"}, Email: auth0.Bool(true),
+		}: `{"email":true,"allowed_audiences":["foo","bar"]}`,
 	} {
 		payload, err := json.Marshal(connection)
 		assert.NoError(t, err)
@@ -631,7 +665,10 @@ func TestGoogleOauth2Connection_UnmarshalJSON(t *testing.T) {
 		`{"allowed_audiences": null}`: {},
 		`{"allowed_audiences": ""}`:   {AllowedAudiences: &[]string{}},
 		`{"allowed_audiences": []}`:   {AllowedAudiences: &[]string{}},
-		`{"allowed_audiences": ["foo", "bar"], "scope": ["email"] }`: {AllowedAudiences: &[]string{"foo", "bar"}, Scope: []interface{}{"email"}},
+		`{"allowed_audiences": ["foo", "bar"], "scope": ["email"] }`: {
+			AllowedAudiences: &[]string{"foo", "bar"},
+			Scope:            []interface{}{"email"},
+		},
 	} {
 		var actual *ConnectionOptionsGoogleOAuth2
 		err := json.Unmarshal([]byte(expectedAsString), &actual)
@@ -639,11 +676,13 @@ func TestGoogleOauth2Connection_UnmarshalJSON(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	}
 
-	t.Run("Throws an unexpected type error", func(t *testing.T) {
-		var actual *ConnectionOptionsGoogleOAuth2
-		err := json.Unmarshal([]byte(`{"allowed_audiences": 1}`), &actual)
-		assert.EqualError(t, err, "unexpected type for field allowed_audiences: float64")
-	})
+	t.Run(
+		"Throws an unexpected type error", func(t *testing.T) {
+			var actual *ConnectionOptionsGoogleOAuth2
+			err := json.Unmarshal([]byte(`{"allowed_audiences": 1}`), &actual)
+			assert.EqualError(t, err, "unexpected type for field allowed_audiences: float64")
+		},
+	)
 }
 
 func cleanupConnection(t *testing.T, connectionID string) {
@@ -662,9 +701,11 @@ func givenAConnection(t *testing.T, testCase connectionTestCase) *Connection {
 	err := api.Connection.Create(context.Background(), &connection)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupConnection(t, connection.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupConnection(t, connection.GetID())
+		},
+	)
 
 	return &connection
 }

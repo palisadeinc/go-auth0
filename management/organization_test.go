@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestOrganizationManager_Create(t *testing.T) {
@@ -29,9 +29,11 @@ func TestOrganizationManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, org.GetID())
 
-	t.Cleanup(func() {
-		cleanupOrganization(t, org.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupOrganization(t, org.GetID())
+		},
+	)
 }
 
 func TestOrganizationManager_Read(t *testing.T) {
@@ -117,15 +119,19 @@ func TestOrganizationManager_AddConnection(t *testing.T) {
 
 	org := givenAnOrganization(t)
 	client := givenAClient(t)
-	conn := givenAConnection(t, connectionTestCase{connection: Connection{
-		Name:        auth0.String(fmt.Sprintf("test-conn%v", rand.Intn(999))),
-		DisplayName: auth0.String(fmt.Sprintf("Test Connection %v", rand.Intn(999))),
-		Strategy:    auth0.String(ConnectionStrategyAuth0),
-		EnabledClients: &[]string{
-			os.Getenv("AUTH0_CLIENT_ID"),
-			client.GetClientID(),
+	conn := givenAConnection(
+		t, connectionTestCase{
+			connection: Connection{
+				Name:        auth0.String(fmt.Sprintf("test-conn%v", rand.Intn(999))),
+				DisplayName: auth0.String(fmt.Sprintf("Test Connection %v", rand.Intn(999))),
+				Strategy:    auth0.String(ConnectionStrategyAuth0),
+				EnabledClients: &[]string{
+					os.Getenv("AUTH0_CLIENT_ID"),
+					client.GetClientID(),
+				},
+			},
 		},
-	}})
+	)
 	orgConn := &OrganizationConnection{
 		ConnectionID:            conn.ID,
 		AssignMembershipOnLogin: auth0.Bool(true),
@@ -367,26 +373,30 @@ func givenAnOrganization(t *testing.T) *Organization {
 	err := api.Organization.Create(context.Background(), org)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupOrganization(t, org.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupOrganization(t, org.GetID())
+		},
+	)
 
 	return org
 }
 
 func givenAnOrganizationConnection(t *testing.T, orgID string) *OrganizationConnection {
 	client := givenAClient(t)
-	conn := givenAConnection(t, connectionTestCase{
-		connection: Connection{
-			Name:        auth0.String(fmt.Sprintf("test-conn%v", rand.Intn(999))),
-			DisplayName: auth0.String(fmt.Sprintf("Test Connection %v", rand.Intn(999))),
-			Strategy:    auth0.String(ConnectionStrategyAuth0),
-			EnabledClients: &[]string{
-				os.Getenv("AUTH0_CLIENT_ID"),
-				client.GetClientID(),
+	conn := givenAConnection(
+		t, connectionTestCase{
+			connection: Connection{
+				Name:        auth0.String(fmt.Sprintf("test-conn%v", rand.Intn(999))),
+				DisplayName: auth0.String(fmt.Sprintf("Test Connection %v", rand.Intn(999))),
+				Strategy:    auth0.String(ConnectionStrategyAuth0),
+				EnabledClients: &[]string{
+					os.Getenv("AUTH0_CLIENT_ID"),
+					client.GetClientID(),
+				},
 			},
 		},
-	})
+	)
 	orgConn := &OrganizationConnection{
 		ConnectionID:            conn.ID,
 		AssignMembershipOnLogin: auth0.Bool(true),

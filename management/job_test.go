@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestJobManager_VerifyEmail(t *testing.T) {
@@ -82,13 +82,15 @@ func TestJobManager_ImportUsers(t *testing.T) {
 	assert.Equal(t, 1, actualJob.GetSummary().GetInserted())
 	assert.Equal(t, 1, actualJob.GetSummary().GetTotal())
 
-	t.Cleanup(func() {
-		users, err := api.User.ListByEmail(context.Background(), "auzironian@example.com")
-		assert.NoError(t, err)
-		assert.Len(t, users, 1)
+	t.Cleanup(
+		func() {
+			users, err := api.User.ListByEmail(context.Background(), "auzironian@example.com")
+			assert.NoError(t, err)
+			assert.Len(t, users, 1)
 
-		cleanupUser(t, users[0].GetID())
-	})
+			cleanupUser(t, users[0].GetID())
+		},
+	)
 }
 
 func TestJobManager_ReadErrors(t *testing.T) {

@@ -7,7 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
+	"gopkg.in/guregu/null.v4"
 )
 
 // Client is an application or a sso integration.
@@ -88,7 +89,7 @@ type Client struct {
 	// 	'none' (public client without a client secret),
 	// 	'client_secret_post' (client uses HTTP POST parameters) or
 	// 	'client_secret_basic' (client uses HTTP Basic)
-	TokenEndpointAuthMethod *string `json:"token_endpoint_auth_method,omitempty"`
+	TokenEndpointAuthMethod null.String `json:"token_endpoint_auth_method,omitempty"`
 
 	// Metadata associated with the client, in the form of an object with string values (max 255 chars).
 	// Maximum of 10 metadata properties allowed. Field names (max 255 chars) are alphanumeric and may
@@ -563,15 +564,21 @@ func (m *ClientManager) Delete(ctx context.Context, id string, opts ...RequestOp
 }
 
 // CreateCredential creates a client application's client credential.
-func (m *ClientManager) CreateCredential(ctx context.Context, clientID string, credential *Credential, opts ...RequestOption) error {
+func (m *ClientManager) CreateCredential(
+	ctx context.Context, clientID string, credential *Credential, opts ...RequestOption,
+) error {
 	return m.management.Request(ctx, "POST", m.management.URI("clients", clientID, "credentials"), credential, opts...)
 }
 
 // UpdateCredential updates a client application's client credential expiry.
-func (m *ClientManager) UpdateCredential(ctx context.Context, clientID, credentialID string, credential *Credential, opts ...RequestOption) error {
+func (m *ClientManager) UpdateCredential(
+	ctx context.Context, clientID, credentialID string, credential *Credential, opts ...RequestOption,
+) error {
 	credentialClone := &Credential{ExpiresAt: credential.ExpiresAt} // The API only accepts the expires_at property.
 
-	err := m.management.Request(ctx, "PATCH", m.management.URI("clients", clientID, "credentials", credentialID), credentialClone, opts...)
+	err := m.management.Request(
+		ctx, "PATCH", m.management.URI("clients", clientID, "credentials", credentialID), credentialClone, opts...,
+	)
 	if err != nil {
 		return err
 	}
@@ -590,20 +597,32 @@ func (m *ClientManager) UpdateCredential(ctx context.Context, clientID, credenti
 }
 
 // ListCredentials lists all client credentials associated with the client application.
-func (m *ClientManager) ListCredentials(ctx context.Context, clientID string, opts ...RequestOption) (c []*Credential, err error) {
-	err = m.management.Request(ctx, "GET", m.management.URI("clients", clientID, "credentials"), &c, applyListDefaults(opts))
+func (m *ClientManager) ListCredentials(ctx context.Context, clientID string, opts ...RequestOption) (
+	c []*Credential, err error,
+) {
+	err = m.management.Request(
+		ctx, "GET", m.management.URI("clients", clientID, "credentials"), &c, applyListDefaults(opts),
+	)
 	return
 }
 
 // GetCredential gets a client credentials object.
-func (m *ClientManager) GetCredential(ctx context.Context, clientID string, credentialID string, opts ...RequestOption) (c *Credential, err error) {
-	err = m.management.Request(ctx, "GET", m.management.URI("clients", clientID, "credentials", credentialID), &c, opts...)
+func (m *ClientManager) GetCredential(
+	ctx context.Context, clientID string, credentialID string, opts ...RequestOption,
+) (c *Credential, err error) {
+	err = m.management.Request(
+		ctx, "GET", m.management.URI("clients", clientID, "credentials", credentialID), &c, opts...,
+	)
 	return
 }
 
 // DeleteCredential deletes a client credentials object.
-func (m *ClientManager) DeleteCredential(ctx context.Context, clientID string, credentialID string, opts ...RequestOption) error {
-	return m.management.Request(ctx, "DELETE", m.management.URI("clients", clientID, "credentials", credentialID), nil, opts...)
+func (m *ClientManager) DeleteCredential(
+	ctx context.Context, clientID string, credentialID string, opts ...RequestOption,
+) error {
+	return m.management.Request(
+		ctx, "DELETE", m.management.URI("clients", clientID, "credentials", credentialID), nil, opts...,
+	)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.

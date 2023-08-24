@@ -12,7 +12,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
 
-	"github.com/auth0/go-auth0/authentication/oauth"
+	"github.com/palisadeinc/go-auth0/authentication/oauth"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,63 +49,67 @@ func configureHTTPTestRecordings(t *testing.T) {
 	authAPI.http.Transport = recorderTransport
 
 	// Set a custom matcher that will ensure the request body matches the recording.
-	recorderTransport.SetMatcher(func(r *http.Request, i cassette.Request) bool {
-		if r.Body == nil || r.Body == http.NoBody {
-			return cassette.DefaultMatcher(r, i)
-		}
-
-		defer func() {
-			err = r.Body.Close()
-			require.NoError(t, err)
-		}()
-
-		reqBody, err := io.ReadAll(r.Body)
-		require.NoError(t, err)
-
-		r.Body = io.NopCloser(bytes.NewBuffer(reqBody))
-
-		rb := strings.TrimSpace(string(reqBody))
-
-		bodyMatches := false
-		switch r.Header.Get("Content-Type") {
-		case "application/json":
-			v := map[string]string{}
-			err := json.Unmarshal([]byte(rb), &v)
-			require.NoError(t, err)
-
-			if v["client_assertion"] != "" {
-				verifyClientAssertion(t, v["client_assertion"])
-				v["client_assertion"] = "test-client_assertion"
+	recorderTransport.SetMatcher(
+		func(r *http.Request, i cassette.Request) bool {
+			if r.Body == nil || r.Body == http.NoBody {
+				return cassette.DefaultMatcher(r, i)
 			}
 
-			body, err := json.Marshal(v)
+			defer func() {
+				err = r.Body.Close()
+				require.NoError(t, err)
+			}()
+
+			reqBody, err := io.ReadAll(r.Body)
 			require.NoError(t, err)
 
-			bodyMatches = assert.JSONEq(t, i.Body, string(body))
-			break
-		case "application/x-www-form-urlencoded":
-			err = r.ParseForm()
-			require.NoError(t, err)
+			r.Body = io.NopCloser(bytes.NewBuffer(reqBody))
 
-			if r.Form.Has("client_assertion") {
-				verifyClientAssertion(t, r.Form.Get("client_assertion"))
-				r.Form.Set("client_assertion", "test-client_assertion")
+			rb := strings.TrimSpace(string(reqBody))
+
+			bodyMatches := false
+			switch r.Header.Get("Content-Type") {
+			case "application/json":
+				v := map[string]string{}
+				err := json.Unmarshal([]byte(rb), &v)
+				require.NoError(t, err)
+
+				if v["client_assertion"] != "" {
+					verifyClientAssertion(t, v["client_assertion"])
+					v["client_assertion"] = "test-client_assertion"
+				}
+
+				body, err := json.Marshal(v)
+				require.NoError(t, err)
+
+				bodyMatches = assert.JSONEq(t, i.Body, string(body))
+				break
+			case "application/x-www-form-urlencoded":
+				err = r.ParseForm()
+				require.NoError(t, err)
+
+				if r.Form.Has("client_assertion") {
+					verifyClientAssertion(t, r.Form.Get("client_assertion"))
+					r.Form.Set("client_assertion", "test-client_assertion")
+				}
+
+				bodyMatches = assert.Equal(t, i.Form, r.Form)
+				break
+			default:
+				bodyMatches = rb == i.Body
 			}
 
-			bodyMatches = assert.Equal(t, i.Form, r.Form)
-			break
-		default:
-			bodyMatches = rb == i.Body
-		}
+			return r.Method == i.Method && r.URL.String() == i.URL && bodyMatches
+		},
+	)
 
-		return r.Method == i.Method && r.URL.String() == i.URL && bodyMatches
-	})
-
-	t.Cleanup(func() {
-		err := recorderTransport.Stop()
-		require.NoError(t, err)
-		authAPI.http.Transport = initialTransport
-	})
+	t.Cleanup(
+		func() {
+			err := recorderTransport.Stop()
+			require.NoError(t, err)
+			authAPI.http.Transport = initialTransport
+		},
+	)
 }
 
 func removeSensitiveDataFromRecordings(t *testing.T, recorderTransport *recorder.Recorder) {

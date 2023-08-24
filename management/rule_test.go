@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestRuleManager_Create(t *testing.T) {
@@ -26,9 +26,11 @@ func TestRuleManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, rule.GetID())
 
-	t.Cleanup(func() {
-		cleanupRule(t, rule.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRule(t, rule.GetID())
+		},
+	)
 }
 
 func TestRuleManager_Read(t *testing.T) {
@@ -98,9 +100,11 @@ func givenARule(t *testing.T) *Rule {
 	err := api.Rule.Create(context.Background(), rule)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupRule(t, rule.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRule(t, rule.GetID())
+		},
+	)
 
 	return rule
 }

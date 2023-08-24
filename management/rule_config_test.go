@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestRuleConfigManager_Upsert(t *testing.T) {
@@ -21,9 +21,11 @@ func TestRuleConfigManager_Upsert(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, key, ruleConfig.GetKey())
 
-	t.Cleanup(func() {
-		cleanupRuleConfig(t, ruleConfig.GetKey())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRuleConfig(t, ruleConfig.GetKey())
+		},
+	)
 }
 
 func TestRuleConfigManager_Read(t *testing.T) {
@@ -73,9 +75,11 @@ func givenARuleConfig(t *testing.T) *RuleConfig {
 	err := api.RuleConfig.Upsert(context.Background(), key, ruleConfig)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupRuleConfig(t, ruleConfig.GetKey())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRuleConfig(t, ruleConfig.GetKey())
+		},
+	)
 
 	return ruleConfig
 }

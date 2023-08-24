@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestUserManager_Create(t *testing.T) {
@@ -60,14 +60,16 @@ func TestUserManager_Update(t *testing.T) {
 	err := api.User.Update(context.Background(), expectedUser.GetID(), actualUser)
 
 	assert.NoError(t, err)
-	assert.Equal(t, map[string]interface{}{
-		"foo": "bar",
-		"facts": []interface{}{
-			"count_to_infinity_twice",
-			"kill_two_stones_with_one_bird",
-			"can_hear_sign_language",
-		},
-	}, *actualUser.AppMetadata)
+	assert.Equal(
+		t, map[string]interface{}{
+			"foo": "bar",
+			"facts": []interface{}{
+				"count_to_infinity_twice",
+				"kill_two_stones_with_one_bird",
+				"can_hear_sign_language",
+			},
+		}, *actualUser.AppMetadata,
+	)
 	assert.Equal(t, "Username-Password-Authentication", actualUser.GetConnection())
 }
 
@@ -175,7 +177,9 @@ func TestUserManager_Permissions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, permissionList.Permissions, 1)
 	assert.Equal(t, permissions[0].GetName(), permissionList.Permissions[0].GetName())
-	assert.Equal(t, permissions[0].GetResourceServerIdentifier(), permissionList.Permissions[0].GetResourceServerIdentifier())
+	assert.Equal(
+		t, permissions[0].GetResourceServerIdentifier(), permissionList.Permissions[0].GetResourceServerIdentifier(),
+	)
 
 	err = api.User.RemovePermissions(context.Background(), user.GetID(), permissions)
 	assert.NoError(t, err)
@@ -379,9 +383,11 @@ func TestUserManager_AuthenticationMethods(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, method.GetID(), methodInfo.GetID())
 
-	err = api.User.UpdateAuthenticationMethod(context.Background(), user.GetID(), methodInfo.GetID(), &AuthenticationMethod{
-		Name: auth0.String("Test2"),
-	})
+	err = api.User.UpdateAuthenticationMethod(
+		context.Background(), user.GetID(), methodInfo.GetID(), &AuthenticationMethod{
+			Name: auth0.String("Test2"),
+		},
+	)
 	assert.NoError(t, err)
 
 	methodInfo, err = api.User.GetAuthenticationMethodByID(context.Background(), user.GetID(), method.GetID())
@@ -461,9 +467,11 @@ func givenAUser(t *testing.T) *User {
 	err := api.User.Create(context.Background(), user)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupUser(t, user.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupUser(t, user.GetID())
+		},
+	)
 
 	return user
 }

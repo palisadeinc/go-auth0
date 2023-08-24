@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestActionManager_Create(t *testing.T) {
@@ -44,9 +44,11 @@ func TestActionManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, expectedAction.GetID())
 
-	t.Cleanup(func() {
-		cleanupAction(t, expectedAction.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupAction(t, expectedAction.GetID())
+		},
+	)
 }
 
 func TestActionManager_Read(t *testing.T) {
@@ -204,10 +206,12 @@ func TestActionManager_Bindings(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, bindingList.Bindings, 1)
 
-	t.Cleanup(func() {
-		err = api.Action.UpdateBindings(context.Background(), ActionTriggerPostLogin, emptyBinding)
-		assert.NoError(t, err)
-	})
+	t.Cleanup(
+		func() {
+			err = api.Action.UpdateBindings(context.Background(), ActionTriggerPostLogin, emptyBinding)
+			assert.NoError(t, err)
+		},
+	)
 }
 
 func TestActionManager_Test(t *testing.T) {
@@ -243,10 +247,12 @@ func TestActionManager_LogSession(t *testing.T) {
 	configureHTTPTestRecordings(t)
 
 	expectedLogSession := &ActionLogSession{
-		Filters: []ActionLogSessionFilter{{
-			Key: "action_id",
-			Val: "act_123",
-		}},
+		Filters: []ActionLogSessionFilter{
+			{
+				Key: "action_id",
+				Val: "act_123",
+			},
+		},
 	}
 
 	err := api.Action.LogSession(context.Background(), expectedLogSession)
@@ -297,9 +303,11 @@ func givenAnAction(t *testing.T) *Action {
 	err := api.Action.Create(context.Background(), action)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupAction(t, action.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupAction(t, action.GetID())
+		},
+	)
 
 	return action
 }

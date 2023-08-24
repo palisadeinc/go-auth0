@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestCustomDomainManager_Create(t *testing.T) {
@@ -24,9 +24,11 @@ func TestCustomDomainManager_Create(t *testing.T) {
 	assertNoCustomDomainErr(t, err)
 	assert.NotEmpty(t, expected.GetID())
 
-	t.Cleanup(func() {
-		cleanupCustomDomain(t, expected.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupCustomDomain(t, expected.GetID())
+		},
+	)
 }
 
 func TestCustomDomainManager_Read(t *testing.T) {
@@ -45,7 +47,9 @@ func TestCustomDomainManager_Update(t *testing.T) {
 
 	customDomain := givenACustomDomain(t)
 
-	err := api.CustomDomain.Update(context.Background(), customDomain.GetID(), &CustomDomain{TLSPolicy: auth0.String("recommended")})
+	err := api.CustomDomain.Update(
+		context.Background(), customDomain.GetID(), &CustomDomain{TLSPolicy: auth0.String("recommended")},
+	)
 	assertNoCustomDomainErr(t, err)
 
 	actual, err := api.CustomDomain.Read(context.Background(), customDomain.GetID())
@@ -104,9 +108,11 @@ func givenACustomDomain(t *testing.T) *CustomDomain {
 	err := api.CustomDomain.Create(context.Background(), customDomain)
 	assertNoCustomDomainErr(t, err)
 
-	t.Cleanup(func() {
-		cleanupCustomDomain(t, customDomain.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupCustomDomain(t, customDomain.GetID())
+		},
+	)
 
 	return customDomain
 }

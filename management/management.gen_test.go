@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	"testing"
 	"time"
+
+	"gopkg.in/guregu/null.v4"
 )
 
 func TestAction_GetBuiltAt(tt *testing.T) {
@@ -1823,7 +1825,7 @@ func TestClient_GetSSODisabled(tt *testing.T) {
 
 func TestClient_GetTokenEndpointAuthMethod(tt *testing.T) {
 	var zeroValue string
-	c := &Client{TokenEndpointAuthMethod: &zeroValue}
+	c := &Client{TokenEndpointAuthMethod: null.NewString(zeroValue, false)}
 	c.GetTokenEndpointAuthMethod()
 	c = &Client{}
 	c.GetTokenEndpointAuthMethod()

@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 const successfulAPIOperation = "sapi"
@@ -80,9 +80,11 @@ func TestLogManagerScope_UnmarshalJSON(t *testing.T) {
 		assert.Equal(t, actual, expected)
 	}
 
-	t.Run("Throws an unexpected type error", func(t *testing.T) {
-		var actual *Log
-		err := json.Unmarshal([]byte(`{"scope": 1}`), &actual)
-		assert.EqualError(t, err, "unexpected type for field scope: float64")
-	})
+	t.Run(
+		"Throws an unexpected type error", func(t *testing.T) {
+			var actual *Log
+			err := json.Unmarshal([]byte(`{"scope": 1}`), &actual)
+			assert.EqualError(t, err, "unexpected type for field scope: float64")
+		},
+	)
 }

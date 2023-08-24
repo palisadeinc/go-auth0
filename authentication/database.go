@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/auth0/go-auth0/authentication/database"
+	"github.com/palisadeinc/go-auth0/authentication/database"
 )
 
 // Database manager.
@@ -16,7 +16,9 @@ type Database manager
 //
 // This endpoint only works for database connections.
 // See: https://auth0.com/docs/api/authentication?http#signup
-func (d *Database) Signup(ctx context.Context, params database.SignupRequest, opts ...RequestOption) (r *database.SignupResponse, err error) {
+func (d *Database) Signup(
+	ctx context.Context, params database.SignupRequest, opts ...RequestOption,
+) (r *database.SignupResponse, err error) {
 	if params.ClientID == "" {
 		params.ClientID = d.authentication.clientID
 	}
@@ -29,12 +31,16 @@ func (d *Database) Signup(ctx context.Context, params database.SignupRequest, op
 //
 // This endpoint only works for database connections.
 // See: https://auth0.com/docs/api/authentication?http#change-password
-func (d *Database) ChangePassword(ctx context.Context, params database.ChangePasswordRequest, opts ...RequestOption) (string, error) {
+func (d *Database) ChangePassword(
+	ctx context.Context, params database.ChangePasswordRequest, opts ...RequestOption,
+) (string, error) {
 	if params.ClientID == "" {
 		params.ClientID = d.authentication.clientID
 	}
 
-	request, err := d.authentication.NewRequest(ctx, "POST", d.authentication.URI("dbconnections", "change_password"), params, opts...)
+	request, err := d.authentication.NewRequest(
+		ctx, "POST", d.authentication.URI("dbconnections", "change_password"), params, opts...,
+	)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to create a new request: %w", err)

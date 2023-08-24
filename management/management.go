@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/oauth2"
 
-	"github.com/auth0/go-auth0/internal/client"
+	"github.com/palisadeinc/go-auth0/internal/client"
 )
 
 // Management is an Auth0 management client used to interact with the Auth0

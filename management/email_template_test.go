@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestEmailTemplateManager_Create(t *testing.T) {
@@ -32,9 +32,11 @@ func TestEmailTemplateManager_Create(t *testing.T) {
 		}
 	}
 
-	t.Cleanup(func() {
-		cleanupEmailTemplate(t, template.GetTemplate())
-	})
+	t.Cleanup(
+		func() {
+			cleanupEmailTemplate(t, template.GetTemplate())
+		},
+	)
 }
 
 func TestEmailTemplateManager_Read(t *testing.T) {
@@ -117,9 +119,11 @@ func givenAnEmailTemplate(t *testing.T) *EmailTemplate {
 		}
 	}
 
-	t.Cleanup(func() {
-		cleanupEmailTemplate(t, template.GetTemplate())
-	})
+	t.Cleanup(
+		func() {
+			cleanupEmailTemplate(t, template.GetTemplate())
+		},
+	)
 
 	return template
 }

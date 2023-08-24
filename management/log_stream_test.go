@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 var logStreamTestCases = []logStreamTestCase{
@@ -115,78 +115,88 @@ type logStreamTestCase struct {
 
 func TestLogStreamManager_Create(t *testing.T) {
 	for _, testCase := range logStreamTestCases {
-		t.Run("It can successfully create a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully create a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			expectedLogStream := testCase.logStream
+				expectedLogStream := testCase.logStream
 
-			err := api.LogStream.Create(context.Background(), &expectedLogStream)
-			assert.NoError(t, err)
-			assert.NotEmpty(t, expectedLogStream.GetID())
+				err := api.LogStream.Create(context.Background(), &expectedLogStream)
+				assert.NoError(t, err)
+				assert.NotEmpty(t, expectedLogStream.GetID())
 
-			t.Cleanup(func() {
-				cleanupLogStream(t, expectedLogStream.GetID())
-			})
-		})
+				t.Cleanup(
+					func() {
+						cleanupLogStream(t, expectedLogStream.GetID())
+					},
+				)
+			},
+		)
 	}
 }
 
 func TestLogStreamManager_Read(t *testing.T) {
 	for _, testCase := range logStreamTestCases {
-		t.Run("It can successfully read a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully read a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			expectedLogStream := givenALogStream(t, testCase)
+				expectedLogStream := givenALogStream(t, testCase)
 
-			actualLogStream, err := api.LogStream.Read(context.Background(), expectedLogStream.GetID())
+				actualLogStream, err := api.LogStream.Read(context.Background(), expectedLogStream.GetID())
 
-			assert.NoError(t, err)
-			assert.Equal(t, expectedLogStream, actualLogStream)
-		})
+				assert.NoError(t, err)
+				assert.Equal(t, expectedLogStream, actualLogStream)
+			},
+		)
 	}
 }
 
 func TestLogStreamManager_Update(t *testing.T) {
 	for _, testCase := range logStreamTestCases {
-		t.Run("It can successfully update a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully update a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			logStream := givenALogStream(t, testCase)
-			updatedLogStream := &LogStream{
-				Filters: &[]map[string]string{
-					{
-						"type": "category",
-						"name": "auth.login.fail",
+				logStream := givenALogStream(t, testCase)
+				updatedLogStream := &LogStream{
+					Filters: &[]map[string]string{
+						{
+							"type": "category",
+							"name": "auth.login.fail",
+						},
 					},
-				},
-			}
+				}
 
-			err := api.LogStream.Update(context.Background(), logStream.GetID(), updatedLogStream)
-			assert.NoError(t, err)
+				err := api.LogStream.Update(context.Background(), logStream.GetID(), updatedLogStream)
+				assert.NoError(t, err)
 
-			actualLogStream, err := api.LogStream.Read(context.Background(), logStream.GetID())
-			assert.NoError(t, err)
-			assert.Equal(t, updatedLogStream.Filters, actualLogStream.Filters)
-		})
+				actualLogStream, err := api.LogStream.Read(context.Background(), logStream.GetID())
+				assert.NoError(t, err)
+				assert.Equal(t, updatedLogStream.Filters, actualLogStream.Filters)
+			},
+		)
 	}
 }
 
 func TestLogStreamManager_Delete(t *testing.T) {
 	for _, testCase := range logStreamTestCases {
-		t.Run("It can successfully delete a "+testCase.name, func(t *testing.T) {
-			configureHTTPTestRecordings(t)
+		t.Run(
+			"It can successfully delete a "+testCase.name, func(t *testing.T) {
+				configureHTTPTestRecordings(t)
 
-			logStream := givenALogStream(t, testCase)
+				logStream := givenALogStream(t, testCase)
 
-			err := api.LogStream.Delete(context.Background(), logStream.GetID())
-			assert.NoError(t, err)
+				err := api.LogStream.Delete(context.Background(), logStream.GetID())
+				assert.NoError(t, err)
 
-			actualLogStream, err := api.LogStream.Read(context.Background(), logStream.GetID())
-			assert.Nil(t, actualLogStream)
-			assert.Error(t, err)
-			assert.Implements(t, (*Error)(nil), err)
-			assert.Equal(t, http.StatusNotFound, err.(Error).Status())
-		})
+				actualLogStream, err := api.LogStream.Read(context.Background(), logStream.GetID())
+				assert.Nil(t, actualLogStream)
+				assert.Error(t, err)
+				assert.Implements(t, (*Error)(nil), err)
+				assert.Equal(t, http.StatusNotFound, err.(Error).Status())
+			},
+		)
 	}
 }
 
@@ -207,9 +217,11 @@ func givenALogStream(t *testing.T, testCase logStreamTestCase) *LogStream {
 	err := api.LogStream.Create(context.Background(), &logStream)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupLogStream(t, logStream.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupLogStream(t, logStream.GetID())
+		},
+	)
 
 	return &logStream
 }

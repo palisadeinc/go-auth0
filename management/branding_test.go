@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestBrandingManager_Read(t *testing.T) {
@@ -73,10 +73,12 @@ func TestBrandingManager_UniversalLogin(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedUL, actualUL)
 
-	t.Cleanup(func() {
-		err = api.Branding.DeleteUniversalLogin(context.Background())
-		assert.NoError(t, err)
-	})
+	t.Cleanup(
+		func() {
+			err = api.Branding.DeleteUniversalLogin(context.Background())
+			assert.NoError(t, err)
+		},
+	)
 }
 
 func TestBrandingColors(t *testing.T) {
@@ -116,15 +118,17 @@ func TestBrandingColors(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			b, err := json.Marshal(testCase.colors)
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.expect, string(b))
+		t.Run(
+			testCase.name, func(t *testing.T) {
+				b, err := json.Marshal(testCase.colors)
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.expect, string(b))
 
-			var colors BrandingColors
-			err = json.Unmarshal([]byte(testCase.expect), &colors)
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.colors, &colors)
-		})
+				var colors BrandingColors
+				err = json.Unmarshal([]byte(testCase.expect), &colors)
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.colors, &colors)
+			},
+		)
 	}
 }

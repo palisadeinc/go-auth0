@@ -20,9 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0/authentication/database"
-	"github.com/auth0/go-auth0/authentication/oauth"
-	"github.com/auth0/go-auth0/internal/client"
+	"github.com/palisadeinc/go-auth0/authentication/database"
+	"github.com/palisadeinc/go-auth0/authentication/oauth"
+	"github.com/palisadeinc/go-auth0/internal/client"
 )
 
 var (
@@ -158,10 +158,12 @@ func TestAuthenticationApiCallContextCancel(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = a.Database.Signup(ctx, database.SignupRequest{
-		Username: "test",
-		Password: "test",
-	})
+	_, err = a.Database.Signup(
+		ctx, database.SignupRequest{
+			Username: "test",
+			Password: "test",
+		},
+	)
 	assert.ErrorIs(t, err, context.Canceled)
 }
 
@@ -179,10 +181,12 @@ func TestAuthenticationApiCallContextTimeout(t *testing.T) {
 
 	assert.NoError(t, err)
 
-	_, err = a.Database.Signup(ctx, database.SignupRequest{
-		Username: "test",
-		Password: "test",
-	})
+	_, err = a.Database.Signup(
+		ctx, database.SignupRequest{
+			Username: "test",
+			Password: "test",
+		},
+	)
 	assert.ErrorIs(t, err, context.DeadlineExceeded)
 }
 
@@ -197,235 +201,275 @@ func TestUserInfo(t *testing.T) {
 }
 
 func TestAuth0Client(t *testing.T) {
-	t.Run("Defaults to the default data", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+	t.Run(
+		"Defaults to the default data", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+					assert.NoError(t, err)
+
+					var auth0Client client.Auth0ClientInfo
+					err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
+
+					assert.NoError(t, err)
+					assert.Equal(t, "go-auth0", auth0Client.Name)
+					assert.Equal(t, "latest", auth0Client.Version)
+					assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
+				},
+			)
+			s := httptest.NewTLSServer(h)
+			t.Cleanup(
+				func() {
+					s.Close()
+				},
+			)
+
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithClient(s.Client()),
+				WithIDTokenSigningAlg("HS256"),
+			)
 			assert.NoError(t, err)
 
-			var auth0Client client.Auth0ClientInfo
-			err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
+			_, err = a.UserInfo(context.Background(), "123")
 
 			assert.NoError(t, err)
-			assert.Equal(t, "go-auth0", auth0Client.Name)
-			assert.Equal(t, "latest", auth0Client.Version)
-			assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
-		})
-		s := httptest.NewTLSServer(h)
-		t.Cleanup(func() {
-			s.Close()
-		})
+		},
+	)
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithClient(s.Client()),
-			WithIDTokenSigningAlg("HS256"),
-		)
-		assert.NoError(t, err)
+	t.Run(
+		"Allows disabling Auth0ClientInfo", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					rawHeader := r.Header.Get("Auth0-Client")
+					assert.Empty(t, rawHeader)
+				},
+			)
+			s := httptest.NewTLSServer(h)
+			t.Cleanup(
+				func() {
+					s.Close()
+				},
+			)
 
-		_, err = a.UserInfo(context.Background(), "123")
-
-		assert.NoError(t, err)
-	})
-
-	t.Run("Allows disabling Auth0ClientInfo", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rawHeader := r.Header.Get("Auth0-Client")
-			assert.Empty(t, rawHeader)
-		})
-		s := httptest.NewTLSServer(h)
-		t.Cleanup(func() {
-			s.Close()
-		})
-
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithClient(s.Client()),
-			WithIDTokenSigningAlg("HS256"),
-			WithNoAuth0ClientInfo(),
-		)
-		assert.NoError(t, err)
-
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.NoError(t, err)
-	})
-
-	t.Run("Allows passing extra env info", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithClient(s.Client()),
+				WithIDTokenSigningAlg("HS256"),
+				WithNoAuth0ClientInfo(),
+			)
 			assert.NoError(t, err)
 
-			var auth0Client client.Auth0ClientInfo
-			err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
-
+			_, err = a.UserInfo(context.Background(), "123")
 			assert.NoError(t, err)
-			assert.Equal(t, "go-auth0", auth0Client.Name)
-			assert.Equal(t, "latest", auth0Client.Version)
-			assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
-			assert.Equal(t, "bar", auth0Client.Env["foo"])
-		})
-		s := httptest.NewTLSServer(h)
-		t.Cleanup(func() {
-			s.Close()
-		})
+		},
+	)
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithClient(s.Client()),
-			WithAuth0ClientEnvEntry("foo", "bar"),
-			WithIDTokenSigningAlg("HS256"),
-		)
-		assert.NoError(t, err)
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.NoError(t, err)
-	})
+	t.Run(
+		"Allows passing extra env info", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+					assert.NoError(t, err)
 
-	t.Run("Handles when client info has been disabled", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			assert.Equal(t, "", header)
-		})
-		s := httptest.NewTLSServer(h)
-		t.Cleanup(func() {
-			s.Close()
-		})
+					var auth0Client client.Auth0ClientInfo
+					err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithClient(s.Client()),
-			WithNoAuth0ClientInfo(),
-			WithAuth0ClientEnvEntry("foo", "bar"),
-			WithIDTokenSigningAlg("HS256"),
-		)
-		assert.NoError(t, err)
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.NoError(t, err)
-	})
+					assert.NoError(t, err)
+					assert.Equal(t, "go-auth0", auth0Client.Name)
+					assert.Equal(t, "latest", auth0Client.Version)
+					assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
+					assert.Equal(t, "bar", auth0Client.Env["foo"])
+				},
+			)
+			s := httptest.NewTLSServer(h)
+			t.Cleanup(
+				func() {
+					s.Close()
+				},
+			)
+
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithClient(s.Client()),
+				WithAuth0ClientEnvEntry("foo", "bar"),
+				WithIDTokenSigningAlg("HS256"),
+			)
+			assert.NoError(t, err)
+			_, err = a.UserInfo(context.Background(), "123")
+			assert.NoError(t, err)
+		},
+	)
+
+	t.Run(
+		"Handles when client info has been disabled", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					assert.Equal(t, "", header)
+				},
+			)
+			s := httptest.NewTLSServer(h)
+			t.Cleanup(
+				func() {
+					s.Close()
+				},
+			)
+
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithClient(s.Client()),
+				WithNoAuth0ClientInfo(),
+				WithAuth0ClientEnvEntry("foo", "bar"),
+				WithIDTokenSigningAlg("HS256"),
+			)
+			assert.NoError(t, err)
+			_, err = a.UserInfo(context.Background(), "123")
+			assert.NoError(t, err)
+		},
+	)
 }
 
 func TestRetries(t *testing.T) {
-	t.Run("Default retry logic", func(t *testing.T) {
-		start := time.Now()
-		i := 0
+	t.Run(
+		"Default retry logic", func(t *testing.T) {
+			start := time.Now()
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			if i == 1 {
-				w.WriteHeader(http.StatusTooManyRequests)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					if i == 1 {
+						w.WriteHeader(http.StatusTooManyRequests)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				},
+			)
 
-		s := httptest.NewTLSServer(h)
-		defer s.Close()
+			s := httptest.NewTLSServer(h)
+			defer s.Close()
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithIDTokenSigningAlg("HS256"),
-			WithClient(s.Client()),
-		)
-		assert.NoError(t, err)
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithIDTokenSigningAlg("HS256"),
+				WithClient(s.Client()),
+			)
+			assert.NoError(t, err)
 
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.NoError(t, err)
+			_, err = a.UserInfo(context.Background(), "123")
+			assert.NoError(t, err)
 
-		elapsed := time.Since(start).Milliseconds()
-		assert.Greater(t, elapsed, int64(250))
-		assert.Equal(t, 2, i)
-	})
+			elapsed := time.Since(start).Milliseconds()
+			assert.Greater(t, elapsed, int64(250))
+			assert.Equal(t, 2, i)
+		},
+	)
 
-	t.Run("Custom retry logic", func(t *testing.T) {
-		start := time.Now()
-		i := 0
+	t.Run(
+		"Custom retry logic", func(t *testing.T) {
+			start := time.Now()
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			if i < 2 {
-				w.WriteHeader(http.StatusBadGateway)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					if i < 2 {
+						w.WriteHeader(http.StatusBadGateway)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				},
+			)
 
-		s := httptest.NewTLSServer(h)
-		defer s.Close()
+			s := httptest.NewTLSServer(h)
+			defer s.Close()
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithIDTokenSigningAlg("HS256"),
-			WithClient(s.Client()),
-			WithRetries(1, []int{http.StatusBadGateway}),
-		)
-		assert.NoError(t, err)
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithIDTokenSigningAlg("HS256"),
+				WithClient(s.Client()),
+				WithRetries(1, []int{http.StatusBadGateway}),
+			)
+			assert.NoError(t, err)
 
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.NoError(t, err)
-		assert.Equal(t, 2, i)
+			_, err = a.UserInfo(context.Background(), "123")
+			assert.NoError(t, err)
+			assert.Equal(t, 2, i)
 
-		elapsed := time.Since(start)
-		assert.Greater(t, elapsed, 250*time.Millisecond)
-		assert.NoError(t, err)
-	})
+			elapsed := time.Since(start)
+			assert.Greater(t, elapsed, 250*time.Millisecond)
+			assert.NoError(t, err)
+		},
+	)
 
-	t.Run("Disabling retries", func(t *testing.T) {
-		i := 0
+	t.Run(
+		"Disabling retries", func(t *testing.T) {
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			w.WriteHeader(http.StatusBadGateway)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					w.WriteHeader(http.StatusBadGateway)
+				},
+			)
 
-		s := httptest.NewTLSServer(h)
-		defer s.Close()
+			s := httptest.NewTLSServer(h)
+			defer s.Close()
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithIDTokenSigningAlg("HS256"),
-			WithClient(s.Client()),
-			WithNoRetries(),
-		)
-		assert.NoError(t, err)
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithIDTokenSigningAlg("HS256"),
+				WithClient(s.Client()),
+				WithNoRetries(),
+			)
+			assert.NoError(t, err)
 
-		_, err = a.UserInfo(context.Background(), "123")
-		assert.Equal(t, http.StatusBadGateway, err.(*authenticationError).StatusCode)
-		assert.Equal(t, 1, i)
-	})
+			_, err = a.UserInfo(context.Background(), "123")
+			assert.Equal(t, http.StatusBadGateway, err.(*authenticationError).StatusCode)
+			assert.Equal(t, 1, i)
+		},
+	)
 
-	t.Run("Retry and context", func(t *testing.T) {
-		i := 0
-		ctx, cancel := context.WithCancel(context.Background())
+	t.Run(
+		"Retry and context", func(t *testing.T) {
+			i := 0
+			ctx, cancel := context.WithCancel(context.Background())
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			cancel()
-			w.WriteHeader(http.StatusBadGateway)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					cancel()
+					w.WriteHeader(http.StatusBadGateway)
+				},
+			)
 
-		s := httptest.NewTLSServer(h)
-		defer s.Close()
+			s := httptest.NewTLSServer(h)
+			defer s.Close()
 
-		a, err := New(
-			context.Background(),
-			s.URL,
-			WithIDTokenSigningAlg("HS256"),
-			WithClient(s.Client()),
-			WithRetries(3, []int{http.StatusBadGateway}),
-		)
-		assert.NoError(t, err)
+			a, err := New(
+				context.Background(),
+				s.URL,
+				WithIDTokenSigningAlg("HS256"),
+				WithClient(s.Client()),
+				WithRetries(3, []int{http.StatusBadGateway}),
+			)
+			assert.NoError(t, err)
 
-		_, err = a.UserInfo(ctx, "123")
-		assert.ErrorIs(t, err, context.Canceled)
-		assert.Equal(t, 1, i) // 1 request should have been made before the context times out
-	})
+			_, err = a.UserInfo(ctx, "123")
+			assert.ErrorIs(t, err, context.Canceled)
+			assert.Equal(t, 1, i) // 1 request should have been made before the context times out
+		},
+	)
 }
 
 func TestWithClockTolerance(t *testing.T) {
@@ -433,26 +477,30 @@ func TestWithClockTolerance(t *testing.T) {
 	idTokenClientID := "test-client-id"
 
 	var idToken string
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenSet := &oauth.TokenSet{
-			AccessToken: "test-access-token",
-			ExpiresIn:   86400,
-			IDToken:     idToken,
-			TokenType:   "Bearer",
-		}
+	h := http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			tokenSet := &oauth.TokenSet{
+				AccessToken: "test-access-token",
+				ExpiresIn:   86400,
+				IDToken:     idToken,
+				TokenType:   "Bearer",
+			}
 
-		b, err := json.Marshal(tokenSet)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, string(b))
-	})
+			b, err := json.Marshal(tokenSet)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			fmt.Fprint(w, string(b))
+		},
+	)
 	s := httptest.NewTLSServer(h)
-	t.Cleanup(func() {
-		s.Close()
-	})
+	t.Cleanup(
+		func() {
+			s.Close()
+		},
+	)
 
 	URL, err := url.Parse(s.URL)
 	require.NoError(t, err)
@@ -481,8 +529,10 @@ func TestWithClockTolerance(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	_, err = api.OAuth.LoginWithAuthCode(context.Background(), oauth.LoginWithAuthCodeRequest{
-		Code: "my-code",
-	}, oauth.IDTokenValidationOptions{})
+	_, err = api.OAuth.LoginWithAuthCode(
+		context.Background(), oauth.LoginWithAuthCodeRequest{
+			Code: "my-code",
+		}, oauth.IDTokenValidationOptions{},
+	)
 	assert.ErrorContains(t, err, "\"iat\" not satisfied")
 }

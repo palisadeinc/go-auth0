@@ -1441,10 +1441,7 @@ func (c *Client) GetSSODisabled() bool {
 
 // GetTokenEndpointAuthMethod returns the TokenEndpointAuthMethod field if it's non-nil, zero value otherwise.
 func (c *Client) GetTokenEndpointAuthMethod() string {
-	if c == nil || c.TokenEndpointAuthMethod == nil {
-		return ""
-	}
-	return *c.TokenEndpointAuthMethod
+	return c.TokenEndpointAuthMethod.ValueOrZero()
 }
 
 // GetWebOrigins returns the WebOrigins field if it's non-nil, zero value otherwise.

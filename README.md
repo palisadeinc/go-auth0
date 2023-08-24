@@ -4,9 +4,9 @@
 
 [![GoDoc](https://pkg.go.dev/badge/github.com/auth0/go-auth0.svg)](https://pkg.go.dev/github.com/auth0/go-auth0)
 [![Go Report Card](https://goreportcard.com/badge/github.com/auth0/go-auth0?style=flat-square)](https://goreportcard.com/report/github.com/auth0/go-auth0)
-[![Release](https://img.shields.io/github/v/release/auth0/go-auth0?include_prereleases&style=flat-square)](https://github.com/auth0/go-auth0/releases)
-[![License](https://img.shields.io/github/license/auth0/go-auth0.svg?style=flat-square)](https://github.com/auth0/go-auth0/blob/main/LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/auth0/go-auth0/main.yml?branch=main&style=flat-square)](https://github.com/auth0/go-auth0/actions?query=branch%3Amain)
+[![Release](https://img.shields.io/github/v/release/auth0/go-auth0?include_prereleases&style=flat-square)](https://github.com/palisadeinc/go-auth0/releases)
+[![License](https://img.shields.io/github/license/auth0/go-auth0.svg?style=flat-square)](https://github.com/palisadeinc/go-auth0/blob/main/LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/auth0/go-auth0/main.yml?branch=main&style=flat-square)](https://github.com/palisadeinc/go-auth0/actions?query=branch%3Amain)
 [![Codecov](https://img.shields.io/codecov/c/github/auth0/go-auth0?style=flat-square)](https://codecov.io/gh/auth0/go-auth0)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fauth0%2Fgo-auth0.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fauth0%2Fgo-auth0?ref=badge_shield)
 
@@ -49,9 +49,9 @@ Create an Authentication API client by providing the details of your Auth0 Appli
 ```go
 import (
 	github.com/auth0/go-auth0
-	github.com/auth0/go-auth0/authentication
-	github.com/auth0/go-auth0/authentication/database
-	github.com/auth0/go-auth0/authentication/oauth
+	github.com/palisadeinc/go-auth0/authentication
+	github.com/palisadeinc/go-auth0/authentication/database
+	github.com/palisadeinc/go-auth0/authentication/oauth
 )
 
 func main () {
@@ -110,7 +110,7 @@ import (
 	"log"
 
 	"github.com/auth0/go-auth0"
-	"github.com/auth0/go-auth0/management"
+	"github.com/palisadeinc/go-auth0/management"
 )
 
 func main() {
@@ -181,7 +181,7 @@ We appreciate feedback and contribution to this repo! Before you get started, pl
 
 ### Raise an issue
 
-To provide feedback or report a bug, [please raise an issue on our issue tracker](https://github.com/auth0/go-auth0/issues).
+To provide feedback or report a bug, [please raise an issue on our issue tracker](https://github.com/palisadeinc/go-auth0/issues).
 
 ### Vulnerability Reporting
 

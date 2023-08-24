@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/auth0/go-auth0/internal/client"
-	"github.com/auth0/go-auth0/internal/idtokenvalidator"
+	"github.com/palisadeinc/go-auth0/internal/client"
+	"github.com/palisadeinc/go-auth0/internal/idtokenvalidator"
 )
 
 // UserInfoResponse defines the response from the user info API.
@@ -209,7 +209,9 @@ func New(ctx context.Context, domain string, options ...Option) (*Authentication
 // may return less information than a a scope of `openid profile email`.
 //
 // See: https://auth0.com/docs/api/authentication?http#get-user-info
-func (a *Authentication) UserInfo(ctx context.Context, accessToken string, opts ...RequestOption) (user *UserInfoResponse, err error) {
+func (a *Authentication) UserInfo(
+	ctx context.Context, accessToken string, opts ...RequestOption,
+) (user *UserInfoResponse, err error) {
 	opts = append(opts, Header("Authorization", "Bearer "+accessToken))
 	err = a.Request(ctx, "GET", a.URI("userinfo"), nil, &user, opts...)
 	return

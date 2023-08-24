@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestClient_Create(t *testing.T) {
@@ -25,9 +25,11 @@ func TestClient_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, expectedClient.GetClientID())
 
-	t.Cleanup(func() {
-		cleanupClient(t, expectedClient.GetClientID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupClient(t, expectedClient.GetClientID())
+		},
+	)
 }
 
 func TestClient_Read(t *testing.T) {
@@ -121,36 +123,42 @@ func TestClient_CreateWithClientAddons(t *testing.T) {
 	assert.Equal(t, "my-audience", addons.GetSAML2().GetAudience())
 	assert.NotNil(t, addons.GetWSFED())
 
-	t.Cleanup(func() {
-		cleanupClient(t, expectedClient.GetClientID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupClient(t, expectedClient.GetClientID())
+		},
+	)
 }
 
 func TestJWTConfiguration(t *testing.T) {
-	t.Run("MarshalJSON", func(t *testing.T) {
-		for clientJWTConfiguration, expected := range map[*ClientJWTConfiguration]string{
-			{}:                                   `{}`,
-			{LifetimeInSeconds: auth0.Int(1000)}: `{"lifetime_in_seconds":1000}`,
-		} {
-			jsonBody, err := json.Marshal(clientJWTConfiguration)
-			assert.NoError(t, err)
-			assert.Equal(t, string(jsonBody), expected)
-		}
-	})
+	t.Run(
+		"MarshalJSON", func(t *testing.T) {
+			for clientJWTConfiguration, expected := range map[*ClientJWTConfiguration]string{
+				{}:                                   `{}`,
+				{LifetimeInSeconds: auth0.Int(1000)}: `{"lifetime_in_seconds":1000}`,
+			} {
+				jsonBody, err := json.Marshal(clientJWTConfiguration)
+				assert.NoError(t, err)
+				assert.Equal(t, string(jsonBody), expected)
+			}
+		},
+	)
 
-	t.Run("UnmarshalJSON", func(t *testing.T) {
-		for jsonBody, expected := range map[string]*ClientJWTConfiguration{
-			`{}`:                             {LifetimeInSeconds: nil},
-			`{"lifetime_in_seconds":1000}`:   {LifetimeInSeconds: auth0.Int(1000)},
-			`{"lifetime_in_seconds":"1000"}`: {LifetimeInSeconds: auth0.Int(1000)},
-		} {
-			var actual ClientJWTConfiguration
-			err := json.Unmarshal([]byte(jsonBody), &actual)
+	t.Run(
+		"UnmarshalJSON", func(t *testing.T) {
+			for jsonBody, expected := range map[string]*ClientJWTConfiguration{
+				`{}`:                             {LifetimeInSeconds: nil},
+				`{"lifetime_in_seconds":1000}`:   {LifetimeInSeconds: auth0.Int(1000)},
+				`{"lifetime_in_seconds":"1000"}`: {LifetimeInSeconds: auth0.Int(1000)},
+			} {
+				var actual ClientJWTConfiguration
+				err := json.Unmarshal([]byte(jsonBody), &actual)
 
-			assert.NoError(t, err)
-			assert.Equal(t, &actual, expected)
-		}
-	})
+				assert.NoError(t, err)
+				assert.Equal(t, &actual, expected)
+			}
+		},
+	)
 }
 
 func TestClient_CreateCredential(t *testing.T) {
@@ -161,7 +169,8 @@ func TestClient_CreateCredential(t *testing.T) {
 	credential := &Credential{
 		Name:           auth0.Stringf("Test Credential (%s)", time.Now().Format(time.StampMilli)),
 		CredentialType: auth0.String("public_key"),
-		PEM: auth0.String(`-----BEGIN PUBLIC KEY-----
+		PEM: auth0.String(
+			`-----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA3njxXJoHnuN4hByBhSUo
 0kIbXkJTA0wP0fig87MyVz5KgohPrPJgbRSZ7yz/MmXa4qRNHkWiClJybMS2a98M
 6ELOFG8pfDb6J7JaJqx0Kvqn6xsGInbpwsth3K582Cxrp+Y+GBNja++8wDY5IqAi
@@ -174,16 +183,19 @@ PPfCYVhGhFs5X3Qzzt6MQE+msgMt9zeGH7liJbOSW2NGSJwbmn7q35YYIfJEoXRF
 1iefT/9fJB9vhQhtYfCOe3AEpTQq6Yz5ViLhToBdsVDBbz2gmRLALs9/D91SE9T4
 XzvXjHGyxWVu0jdvS9hyhJzP4165k1cYDgx8mmg0VxR7j79LmCUDsFcvvSrAOf6y
 0zY7r4pmNyQQ0r4in/gs/wkCAwEAAQ==
------END PUBLIC KEY-----`),
+-----END PUBLIC KEY-----`,
+		),
 	}
 
 	err := api.Client.CreateCredential(context.Background(), expectedClient.GetClientID(), credential)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, credential.GetID())
 
-	t.Cleanup(func() {
-		cleanupCredential(t, expectedClient.GetClientID(), credential.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupCredential(t, expectedClient.GetClientID(), credential.GetID())
+		},
+	)
 }
 
 func TestClient_ListCredentials(t *testing.T) {
@@ -207,7 +219,9 @@ func TestClient_GetCredentials(t *testing.T) {
 	expectedClient := givenAClient(t)
 	expectedCredential := givenACredential(t, expectedClient)
 
-	credential, err := api.Client.GetCredential(context.Background(), expectedClient.GetClientID(), expectedCredential.GetID())
+	credential, err := api.Client.GetCredential(
+		context.Background(), expectedClient.GetClientID(), expectedCredential.GetID(),
+	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCredential.GetID(), credential.GetID())
@@ -226,7 +240,9 @@ func TestClient_UpdateCredential(t *testing.T) {
 	credentialID := expectedCredential.GetID()
 	expectedCredential.ID = nil
 
-	err := api.Client.UpdateCredential(context.Background(), expectedClient.GetClientID(), credentialID, expectedCredential)
+	err := api.Client.UpdateCredential(
+		context.Background(), expectedClient.GetClientID(), credentialID, expectedCredential,
+	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expectedCredential.GetExpiresAt(), expiresAt)
@@ -263,9 +279,11 @@ func givenASimpleClient(t *testing.T) *Client {
 	err := api.Client.Create(context.Background(), client)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupClient(t, client.GetClientID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupClient(t, client.GetClientID())
+		},
+	)
 
 	return client
 }
@@ -283,7 +301,8 @@ func givenAClient(t *testing.T) *Client {
 					{
 						Name:           auth0.Stringf("Test Credential (%s)", time.Now().Format(time.StampMilli)),
 						CredentialType: auth0.String("public_key"),
-						PEM: auth0.String(`-----BEGIN PUBLIC KEY-----
+						PEM: auth0.String(
+							`-----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAua6LXMfgDE/tDdkOL1Oe
 3oWUwg1r4dSTg9L7RCcI5hItUzmkVofHtWN0H4CH2lm2ANmaJUsnhzctYowYW2+R
 tHvU9afTmtbdhpy993972hUqZSYLsE3iGziphYkOKVsqq38+VRH3TNg93zSLoRao
@@ -296,7 +315,8 @@ r38Bp0lmiipAsMLduZM/D5dFXkRdWCBNDfULmmg/4nv2wwjbjQuLemAMh7mmrztW
 i/85WMnjKQZT8NqS43pmgyIzg1gK1neMqdS90YmQ/PvJ36qALxCs245w1JpN9BAL
 JbwxCg/dbmKT7PalfWrksx9hGcJxtGqebldaOpw+5GVIPxxtC1C0gVr9BKeiDS3f
 aibASY5pIRiKENmbZELDtucCAwEAAQ==
------END PUBLIC KEY-----`),
+-----END PUBLIC KEY-----`,
+						),
 					},
 				},
 			},
@@ -309,9 +329,11 @@ aibASY5pIRiKENmbZELDtucCAwEAAQ==
 	err := api.Client.Create(context.Background(), client)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupClient(t, client.GetClientID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupClient(t, client.GetClientID())
+		},
+	)
 
 	return client
 }
@@ -329,7 +351,8 @@ func givenACredential(t *testing.T, client *Client) *Credential {
 	credential := &Credential{
 		Name:           auth0.Stringf("Test Credential (%s)", time.Now().Format(time.StampMilli)),
 		CredentialType: auth0.String("public_key"),
-		PEM: auth0.String(`-----BEGIN PUBLIC KEY-----
+		PEM: auth0.String(
+			`-----BEGIN PUBLIC KEY-----
 MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA3njxXJoHnuN4hByBhSUo
 0kIbXkJTA0wP0fig87MyVz5KgohPrPJgbRSZ7yz/MmXa4qRNHkWiClJybMS2a98M
 6ELOFG8pfDb6J7JaJqx0Kvqn6xsGInbpwsth3K582Cxrp+Y+GBNja++8wDY5IqAi
@@ -342,15 +365,18 @@ PPfCYVhGhFs5X3Qzzt6MQE+msgMt9zeGH7liJbOSW2NGSJwbmn7q35YYIfJEoXRF
 1iefT/9fJB9vhQhtYfCOe3AEpTQq6Yz5ViLhToBdsVDBbz2gmRLALs9/D91SE9T4
 XzvXjHGyxWVu0jdvS9hyhJzP4165k1cYDgx8mmg0VxR7j79LmCUDsFcvvSrAOf6y
 0zY7r4pmNyQQ0r4in/gs/wkCAwEAAQ==
------END PUBLIC KEY-----`),
+-----END PUBLIC KEY-----`,
+		),
 	}
 
 	err := api.Client.CreateCredential(context.Background(), client.GetClientID(), credential)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupCredential(t, client.GetClientID(), credential.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupCredential(t, client.GetClientID(), credential.GetID())
+		},
+	)
 
 	return credential
 }

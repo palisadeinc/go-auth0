@@ -12,7 +12,7 @@ import (
 	"gopkg.in/dnaeon/go-vcr.v3/cassette"
 	"gopkg.in/dnaeon/go-vcr.v3/recorder"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 const (
@@ -43,11 +43,13 @@ func configureHTTPTestRecordings(t *testing.T) {
 
 	api.http.Transport = recorderTransport
 
-	t.Cleanup(func() {
-		err := recorderTransport.Stop()
-		require.NoError(t, err)
-		api.http.Transport = initialTransport
-	})
+	t.Cleanup(
+		func() {
+			err := recorderTransport.Stop()
+			require.NoError(t, err)
+			api.http.Transport = initialTransport
+		},
+	)
 }
 
 func removeSensitiveDataFromRecordings(t *testing.T, recorderTransport *recorder.Recorder) {

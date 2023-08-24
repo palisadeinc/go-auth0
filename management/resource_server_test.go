@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestResourceServer_Create(t *testing.T) {
@@ -33,9 +33,11 @@ func TestResourceServer_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, expectedResourceServer.GetID())
 
-	t.Cleanup(func() {
-		cleanupResourceServer(t, expectedResourceServer.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupResourceServer(t, expectedResourceServer.GetID())
+		},
+	)
 }
 
 func TestResourceServer_Read(t *testing.T) {
@@ -65,10 +67,12 @@ func TestResourceServer_Update(t *testing.T) {
 	expectedResourceServer.SkipConsentForVerifiableFirstPartyClients = auth0.Bool(true)
 	expectedResourceServer.TokenLifetime = auth0.Int(7200)
 	expectedResourceServer.TokenLifetimeForWeb = auth0.Int(5400)
-	scopes := append(expectedResourceServer.GetScopes(), ResourceServerScope{
-		Value:       auth0.String("update:resource"),
-		Description: auth0.String("Update Resource"),
-	})
+	scopes := append(
+		expectedResourceServer.GetScopes(), ResourceServerScope{
+			Value:       auth0.String("update:resource"),
+			Description: auth0.String("Update Resource"),
+		},
+	)
 	expectedResourceServer.Scopes = &scopes
 
 	err := api.ResourceServer.Update(context.Background(), resourceServerID, expectedResourceServer)
@@ -128,9 +132,11 @@ func givenAResourceServer(t *testing.T) *ResourceServer {
 	err := api.ResourceServer.Create(context.Background(), resourceServer)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupResourceServer(t, resourceServer.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupResourceServer(t, resourceServer.GetID())
+		},
+	)
 
 	return resourceServer
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestTenantManager(t *testing.T) {
@@ -17,13 +17,15 @@ func TestTenantManager(t *testing.T) {
 	initialSettings, err := api.Tenant.Read(context.Background())
 	assert.NoError(t, err)
 
-	t.Cleanup(func() {
-		initialSettings.SandboxVersionAvailable = nil
-		initialSettings.UniversalLogin = nil
-		initialSettings.Flags = nil
-		err := api.Tenant.Update(context.Background(), initialSettings)
-		require.NoError(t, err)
-	})
+	t.Cleanup(
+		func() {
+			initialSettings.SandboxVersionAvailable = nil
+			initialSettings.UniversalLogin = nil
+			initialSettings.Flags = nil
+			err := api.Tenant.Update(context.Background(), initialSettings)
+			require.NoError(t, err)
+		},
+	)
 
 	newTenantSettings := &Tenant{
 		FriendlyName:          auth0.String("My Example Tenant"),
@@ -57,7 +59,10 @@ func TestTenantManager(t *testing.T) {
 	assert.Equal(t, newTenantSettings.GetAllowedLogoutURLs(), actualTenantSettings.GetAllowedLogoutURLs())
 	assert.Equal(t, newTenantSettings.GetEnabledLocales(), actualTenantSettings.GetEnabledLocales())
 	assert.Equal(t, newTenantSettings.GetSandboxVersion(), actualTenantSettings.GetSandboxVersion())
-	assert.Equal(t, newTenantSettings.GetSessions().GetOIDCLogoutPromptEnabled(), actualTenantSettings.GetSessions().GetOIDCLogoutPromptEnabled())
+	assert.Equal(
+		t, newTenantSettings.GetSessions().GetOIDCLogoutPromptEnabled(),
+		actualTenantSettings.GetSessions().GetOIDCLogoutPromptEnabled(),
+	)
 }
 
 func TestTenant_MarshalJSON(t *testing.T) {

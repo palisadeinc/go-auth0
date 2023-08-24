@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestHookManager_Create(t *testing.T) {
@@ -27,9 +27,11 @@ func TestHookManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, hook.GetID())
 
-	t.Cleanup(func() {
-		cleanupHook(t, hook.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupHook(t, hook.GetID())
+		},
+	)
 }
 
 func TestHookManager_Read(t *testing.T) {
@@ -249,9 +251,11 @@ func givenAHook(t *testing.T, secrets HookSecrets) *Hook {
 		require.NoError(t, err)
 	}
 
-	t.Cleanup(func() {
-		cleanupHook(t, hook.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupHook(t, hook.GetID())
+		},
+	)
 
 	return hook
 }

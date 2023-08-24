@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestRoleManager_Create(t *testing.T) {
@@ -26,9 +26,11 @@ func TestRoleManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, role.GetID())
 
-	t.Cleanup(func() {
-		cleanupRole(t, role.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRole(t, role.GetID())
+		},
+	)
 }
 
 func TestRoleManager_Read(t *testing.T) {
@@ -144,7 +146,9 @@ func TestRoleManager_Permissions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, permissionList.Permissions, 1)
 	assert.Equal(t, permissions[0].GetName(), permissionList.Permissions[0].GetName())
-	assert.Equal(t, permissions[0].GetResourceServerIdentifier(), permissionList.Permissions[0].GetResourceServerIdentifier())
+	assert.Equal(
+		t, permissions[0].GetResourceServerIdentifier(), permissionList.Permissions[0].GetResourceServerIdentifier(),
+	)
 
 	err = api.Role.RemovePermissions(context.Background(), role.GetID(), permissions)
 	assert.NoError(t, err)
@@ -165,9 +169,11 @@ func givenARole(t *testing.T) *Role {
 	err := api.Role.Create(context.Background(), role)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupRole(t, role.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupRole(t, role.GetID())
+		},
+	)
 
 	return role
 }

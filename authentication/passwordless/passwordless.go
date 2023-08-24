@@ -1,6 +1,6 @@
 package passwordless
 
-import "github.com/auth0/go-auth0/authentication/oauth"
+import "github.com/palisadeinc/go-auth0/authentication/oauth"
 
 // SendEmailRequest defines the request body for starting a passwordless flow via email.
 type SendEmailRequest struct {

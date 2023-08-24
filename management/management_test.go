@@ -15,7 +15,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/auth0/go-auth0/internal/client"
+	"github.com/palisadeinc/go-auth0/internal/client"
 )
 
 var (
@@ -143,10 +143,12 @@ func TestOptionParameter(t *testing.T) {
 func TestOptionDefaults(t *testing.T) {
 	r, _ := http.NewRequest("GET", "/", nil)
 
-	applyListDefaults([]RequestOption{
-		PerPage(20),          // This should be persisted (default is 50).
-		IncludeTotals(false), // This should be persisted (default is true).
-	}).apply(r)
+	applyListDefaults(
+		[]RequestOption{
+			PerPage(20),          // This should be persisted (default is 50).
+			IncludeTotals(false), // This should be persisted (default is true).
+		},
+	).apply(r)
 
 	v := r.URL.Query()
 
@@ -191,14 +193,16 @@ func TestRequestContextTimeout(t *testing.T) {
 }
 
 func TestNew_WithInsecure(t *testing.T) {
-	h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.URL.Path {
-		case "/api/v2/users/123":
-			w.Write([]byte(`{"user_id":"123"}`))
-		default:
-			http.NotFound(w, r)
-		}
-	})
+	h := http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/api/v2/users/123":
+				w.Write([]byte(`{"user_id":"123"}`))
+			default:
+				http.NotFound(w, r)
+			}
+		},
+	)
 	s := httptest.NewServer(h)
 
 	m, err := New(s.URL, WithInsecure())
@@ -248,102 +252,120 @@ func TestManagement_URI(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			actual := api.URI(testCase.given...)
-			assert.Equal(t, testCase.expected, actual)
-		})
+		t.Run(
+			testCase.name, func(t *testing.T) {
+				actual := api.URI(testCase.given...)
+				assert.Equal(t, testCase.expected, actual)
+			},
+		)
 	}
 }
 
 func TestAuth0Client(t *testing.T) {
-	t.Run("Defaults to the default data", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+	t.Run(
+		"Defaults to the default data", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+					assert.NoError(t, err)
+
+					var auth0Client client.Auth0ClientInfo
+					err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
+
+					assert.NoError(t, err)
+					assert.Equal(t, "go-auth0", auth0Client.Name)
+					assert.Equal(t, "latest", auth0Client.Version)
+					assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
+				},
+			)
+			s := httptest.NewServer(h)
+
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+			)
 			assert.NoError(t, err)
 
-			var auth0Client client.Auth0ClientInfo
-			err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
+			_, err = m.User.Read(context.Background(), "123")
 
 			assert.NoError(t, err)
-			assert.Equal(t, "go-auth0", auth0Client.Name)
-			assert.Equal(t, "latest", auth0Client.Version)
-			assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
-		})
-		s := httptest.NewServer(h)
+		},
+	)
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-		)
-		assert.NoError(t, err)
+	t.Run(
+		"Allows disabling Auth0ClientInfo", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					rawHeader := r.Header.Get("Auth0-Client")
+					assert.Empty(t, rawHeader)
+				},
+			)
+			s := httptest.NewServer(h)
 
-		_, err = m.User.Read(context.Background(), "123")
-
-		assert.NoError(t, err)
-	})
-
-	t.Run("Allows disabling Auth0ClientInfo", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			rawHeader := r.Header.Get("Auth0-Client")
-			assert.Empty(t, rawHeader)
-		})
-		s := httptest.NewServer(h)
-
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithNoAuth0ClientInfo(),
-		)
-		assert.NoError(t, err)
-		_, err = m.User.Read(context.Background(), "123")
-		assert.NoError(t, err)
-	})
-
-	t.Run("Allows passing extra env info", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithNoAuth0ClientInfo(),
+			)
 			assert.NoError(t, err)
-
-			var auth0Client client.Auth0ClientInfo
-			err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
-
+			_, err = m.User.Read(context.Background(), "123")
 			assert.NoError(t, err)
-			assert.Equal(t, "go-auth0", auth0Client.Name)
-			assert.Equal(t, "latest", auth0Client.Version)
-			assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
-			assert.Equal(t, "bar", auth0Client.Env["foo"])
-		})
-		s := httptest.NewServer(h)
+		},
+	)
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithAuth0ClientEnvEntry("foo", "bar"),
-		)
-		assert.NoError(t, err)
-		_, err = m.User.Read(context.Background(), "123")
-		assert.NoError(t, err)
-	})
+	t.Run(
+		"Allows passing extra env info", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					auth0ClientDecoded, err := base64.StdEncoding.DecodeString(header)
+					assert.NoError(t, err)
 
-	t.Run("Handles when client info has been disabled", func(t *testing.T) {
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			header := r.Header.Get("Auth0-Client")
-			assert.Equal(t, "", header)
-		})
-		s := httptest.NewServer(h)
+					var auth0Client client.Auth0ClientInfo
+					err = json.Unmarshal(auth0ClientDecoded, &auth0Client)
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithNoAuth0ClientInfo(),
-			WithAuth0ClientEnvEntry("foo", "bar"),
-		)
-		assert.NoError(t, err)
-		_, err = m.User.Read(context.Background(), "123")
-		assert.NoError(t, err)
-	})
+					assert.NoError(t, err)
+					assert.Equal(t, "go-auth0", auth0Client.Name)
+					assert.Equal(t, "latest", auth0Client.Version)
+					assert.Equal(t, runtime.Version(), auth0Client.Env["go"])
+					assert.Equal(t, "bar", auth0Client.Env["foo"])
+				},
+			)
+			s := httptest.NewServer(h)
+
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithAuth0ClientEnvEntry("foo", "bar"),
+			)
+			assert.NoError(t, err)
+			_, err = m.User.Read(context.Background(), "123")
+			assert.NoError(t, err)
+		},
+	)
+
+	t.Run(
+		"Handles when client info has been disabled", func(t *testing.T) {
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					header := r.Header.Get("Auth0-Client")
+					assert.Equal(t, "", header)
+				},
+			)
+			s := httptest.NewServer(h)
+
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithNoAuth0ClientInfo(),
+				WithAuth0ClientEnvEntry("foo", "bar"),
+			)
+			assert.NoError(t, err)
+			_, err = m.User.Read(context.Background(), "123")
+			assert.NoError(t, err)
+		},
+	)
 }
 
 func TestApiCallContextCancel(t *testing.T) {
@@ -362,115 +384,131 @@ func TestApiCallContextCancel(t *testing.T) {
 }
 
 func TestRetries(t *testing.T) {
-	t.Run("Default retry logic", func(t *testing.T) {
-		start := time.Now()
-		i := 0
+	t.Run(
+		"Default retry logic", func(t *testing.T) {
+			start := time.Now()
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			if i == 1 {
-				w.WriteHeader(http.StatusTooManyRequests)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					if i == 1 {
+						w.WriteHeader(http.StatusTooManyRequests)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				},
+			)
 
-		s := httptest.NewServer(h)
-		defer s.Close()
+			s := httptest.NewServer(h)
+			defer s.Close()
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-		)
-		assert.NoError(t, err)
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+			)
+			assert.NoError(t, err)
 
-		_, err = m.User.Read(context.Background(), "123")
-		assert.NoError(t, err)
+			_, err = m.User.Read(context.Background(), "123")
+			assert.NoError(t, err)
 
-		elapsed := time.Since(start).Milliseconds()
-		assert.Greater(t, elapsed, int64(250))
-		assert.Equal(t, 2, i)
-	})
+			elapsed := time.Since(start).Milliseconds()
+			assert.Greater(t, elapsed, int64(250))
+			assert.Equal(t, 2, i)
+		},
+	)
 
-	t.Run("Custom retry logic", func(t *testing.T) {
-		start := time.Now()
-		i := 0
+	t.Run(
+		"Custom retry logic", func(t *testing.T) {
+			start := time.Now()
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			if i < 2 {
-				w.WriteHeader(http.StatusBadGateway)
-				return
-			}
-			w.WriteHeader(http.StatusOK)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					if i < 2 {
+						w.WriteHeader(http.StatusBadGateway)
+						return
+					}
+					w.WriteHeader(http.StatusOK)
+				},
+			)
 
-		s := httptest.NewServer(h)
-		defer s.Close()
+			s := httptest.NewServer(h)
+			defer s.Close()
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithRetries(1, []int{http.StatusBadGateway}),
-		)
-		assert.NoError(t, err)
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithRetries(1, []int{http.StatusBadGateway}),
+			)
+			assert.NoError(t, err)
 
-		_, err = m.User.Read(context.Background(), "123")
-		assert.NoError(t, err)
-		assert.Equal(t, 2, i)
+			_, err = m.User.Read(context.Background(), "123")
+			assert.NoError(t, err)
+			assert.Equal(t, 2, i)
 
-		elapsed := time.Since(start)
-		assert.Greater(t, elapsed, 250*time.Millisecond)
-		assert.NoError(t, err)
-	})
+			elapsed := time.Since(start)
+			assert.Greater(t, elapsed, 250*time.Millisecond)
+			assert.NoError(t, err)
+		},
+	)
 
-	t.Run("Disabling retries", func(t *testing.T) {
-		i := 0
+	t.Run(
+		"Disabling retries", func(t *testing.T) {
+			i := 0
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			w.WriteHeader(http.StatusBadGateway)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					w.WriteHeader(http.StatusBadGateway)
+				},
+			)
 
-		s := httptest.NewServer(h)
-		defer s.Close()
+			s := httptest.NewServer(h)
+			defer s.Close()
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithNoRetries(),
-		)
-		assert.NoError(t, err)
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithNoRetries(),
+			)
+			assert.NoError(t, err)
 
-		_, err = m.User.Read(context.Background(), "123")
-		assert.Equal(t, http.StatusBadGateway, err.(*managementError).StatusCode)
-		assert.Equal(t, 1, i)
-	})
+			_, err = m.User.Read(context.Background(), "123")
+			assert.Equal(t, http.StatusBadGateway, err.(*managementError).StatusCode)
+			assert.Equal(t, 1, i)
+		},
+	)
 
-	t.Run("Retry and context", func(t *testing.T) {
-		i := 0
-		ctx, cancel := context.WithCancel(context.Background())
+	t.Run(
+		"Retry and context", func(t *testing.T) {
+			i := 0
+			ctx, cancel := context.WithCancel(context.Background())
 
-		h := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			i++
-			cancel()
-			w.WriteHeader(http.StatusBadGateway)
-		})
+			h := http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					i++
+					cancel()
+					w.WriteHeader(http.StatusBadGateway)
+				},
+			)
 
-		s := httptest.NewServer(h)
-		defer s.Close()
+			s := httptest.NewServer(h)
+			defer s.Close()
 
-		m, err := New(
-			s.URL,
-			WithInsecure(),
-			WithRetries(3, []int{http.StatusBadGateway}),
-		)
-		assert.NoError(t, err)
+			m, err := New(
+				s.URL,
+				WithInsecure(),
+				WithRetries(3, []int{http.StatusBadGateway}),
+			)
+			assert.NoError(t, err)
 
-		_, err = m.User.Read(ctx, "123")
-		assert.ErrorIs(t, err, context.Canceled)
-		assert.Equal(t, 1, i) // 1 request should have been made before the context times out
-	})
+			_, err = m.User.Read(ctx, "123")
+			assert.ErrorIs(t, err, context.Canceled)
+			assert.Equal(t, 1, i) // 1 request should have been made before the context times out
+		},
+	)
 }
 
 func TestApiCallContextTimeout(t *testing.T) {

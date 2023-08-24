@@ -3,9 +3,9 @@ package authentication
 import (
 	"context"
 
-	"github.com/auth0/go-auth0/authentication/oauth"
-	"github.com/auth0/go-auth0/authentication/passwordless"
-	"github.com/auth0/go-auth0/internal/idtokenvalidator"
+	"github.com/palisadeinc/go-auth0/authentication/oauth"
+	"github.com/palisadeinc/go-auth0/authentication/passwordless"
+	"github.com/palisadeinc/go-auth0/internal/idtokenvalidator"
 )
 
 // Passwordless exposes logging in using the passwordless APIs.
@@ -17,7 +17,9 @@ type Passwordless manager
 // helper.
 //
 // See: https://auth0.com/docs/api/authentication?http#get-code-or-link
-func (p *Passwordless) SendEmail(ctx context.Context, params passwordless.SendEmailRequest, opts ...RequestOption) (r *passwordless.SendEmailResponse, err error) {
+func (p *Passwordless) SendEmail(
+	ctx context.Context, params passwordless.SendEmailRequest, opts ...RequestOption,
+) (r *passwordless.SendEmailResponse, err error) {
 	err = p.addClientAuthentication(&params.ClientAuthentication)
 	if err != nil {
 		return nil, err
@@ -32,7 +34,10 @@ func (p *Passwordless) SendEmail(ctx context.Context, params passwordless.SendEm
 // LoginWithEmail completes the passwordless flow started in `SendEmail` by exchanging the code for a token.
 //
 // See: https://auth0.com/docs/api/authentication?http#authenticate-user
-func (p *Passwordless) LoginWithEmail(ctx context.Context, params passwordless.LoginWithEmailRequest, validationOptions oauth.IDTokenValidationOptions, opts ...RequestOption) (t *oauth.TokenSet, err error) {
+func (p *Passwordless) LoginWithEmail(
+	ctx context.Context, params passwordless.LoginWithEmailRequest, validationOptions oauth.IDTokenValidationOptions,
+	opts ...RequestOption,
+) (t *oauth.TokenSet, err error) {
 	err = p.addClientAuthentication(&params.ClientAuthentication)
 	if err != nil {
 		return nil, err
@@ -44,11 +49,13 @@ func (p *Passwordless) LoginWithEmail(ctx context.Context, params passwordless.L
 	err = p.authentication.Request(ctx, "POST", p.authentication.URI("oauth", "token"), params, &t, opts...)
 
 	if t != nil && t.IDToken != "" {
-		err = p.authentication.idTokenValidator.Validate(t.IDToken, idtokenvalidator.ValidationOptions{
-			MaxAge:       validationOptions.MaxAge,
-			Nonce:        validationOptions.Nonce,
-			Organization: validationOptions.Organization,
-		})
+		err = p.authentication.idTokenValidator.Validate(
+			t.IDToken, idtokenvalidator.ValidationOptions{
+				MaxAge:       validationOptions.MaxAge,
+				Nonce:        validationOptions.Nonce,
+				Organization: validationOptions.Organization,
+			},
+		)
 
 		if err != nil {
 			return nil, err
@@ -63,7 +70,9 @@ func (p *Passwordless) LoginWithEmail(ctx context.Context, params passwordless.L
 // helper.
 //
 // See: https://auth0.com/docs/api/authentication?http#get-code-or-link
-func (p *Passwordless) SendSMS(ctx context.Context, params passwordless.SendSMSRequest, opts ...RequestOption) (r *passwordless.SendSMSResponse, err error) {
+func (p *Passwordless) SendSMS(
+	ctx context.Context, params passwordless.SendSMSRequest, opts ...RequestOption,
+) (r *passwordless.SendSMSResponse, err error) {
 	err = p.addClientAuthentication(&params.ClientAuthentication)
 	if err != nil {
 		return nil, err
@@ -78,7 +87,10 @@ func (p *Passwordless) SendSMS(ctx context.Context, params passwordless.SendSMSR
 // LoginWithSMS completes the passwordless flow started in `SendSMS` by exchanging the code for a token.
 //
 // See: https://auth0.com/docs/api/authentication?http#authenticate-user
-func (p *Passwordless) LoginWithSMS(ctx context.Context, params passwordless.LoginWithSMSRequest, validationOptions oauth.IDTokenValidationOptions, opts ...RequestOption) (t *oauth.TokenSet, err error) {
+func (p *Passwordless) LoginWithSMS(
+	ctx context.Context, params passwordless.LoginWithSMSRequest, validationOptions oauth.IDTokenValidationOptions,
+	opts ...RequestOption,
+) (t *oauth.TokenSet, err error) {
 	err = p.addClientAuthentication(&params.ClientAuthentication)
 
 	if err != nil {
@@ -91,11 +103,13 @@ func (p *Passwordless) LoginWithSMS(ctx context.Context, params passwordless.Log
 	err = p.authentication.Request(ctx, "POST", p.authentication.URI("oauth", "token"), params, &t, opts...)
 
 	if t != nil && t.IDToken != "" {
-		err = p.authentication.idTokenValidator.Validate(t.IDToken, idtokenvalidator.ValidationOptions{
-			MaxAge:       validationOptions.MaxAge,
-			Nonce:        validationOptions.Nonce,
-			Organization: validationOptions.Organization,
-		})
+		err = p.authentication.idTokenValidator.Validate(
+			t.IDToken, idtokenvalidator.ValidationOptions{
+				MaxAge:       validationOptions.MaxAge,
+				Nonce:        validationOptions.Nonce,
+				Organization: validationOptions.Organization,
+			},
+		)
 
 		if err != nil {
 			return nil, err

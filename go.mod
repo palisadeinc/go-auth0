@@ -1,9 +1,10 @@
-module github.com/auth0/go-auth0
+module github.com/palisadeinc/go-auth0
 
-go 1.19
+go 1.21.0
 
 require (
 	github.com/PuerkitoBio/rehttp v1.2.0
+	github.com/auth0/go-auth0 v1.0.1
 	github.com/google/uuid v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/lestrrat-go/jwx/v2 v2.0.12
@@ -11,6 +12,7 @@ require (
 	go.devnw.com/structs v1.0.0
 	golang.org/x/oauth2 v0.11.0
 	gopkg.in/dnaeon/go-vcr.v3 v3.1.2
+	gopkg.in/guregu/null.v4 v4.0.0
 )
 
 require (

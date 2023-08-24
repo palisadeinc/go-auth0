@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/auth0/go-auth0/authentication/database"
+	"github.com/palisadeinc/go-auth0/authentication/database"
 )
 
 func TestDatabaseSignUp(t *testing.T) {
@@ -28,10 +28,12 @@ func TestDatabaseSignUp(t *testing.T) {
 func TestDatabaseChangePassword(t *testing.T) {
 	configureHTTPTestRecordings(t)
 
-	resp, err := authAPI.Database.ChangePassword(context.Background(), database.ChangePasswordRequest{
-		Connection: "Username-Password-Authentication",
-		Email:      "mytestaccount@example.com",
-	})
+	resp, err := authAPI.Database.ChangePassword(
+		context.Background(), database.ChangePasswordRequest{
+			Connection: "Username-Password-Authentication",
+			Email:      "mytestaccount@example.com",
+		},
+	)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "We've just sent you an email to reset your password.", resp)

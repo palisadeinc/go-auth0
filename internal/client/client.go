@@ -22,7 +22,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 // UserAgent is the default user agent string.
@@ -196,10 +196,12 @@ func UserAgentTransport(base http.RoundTripper, userAgent string) http.RoundTrip
 	if base == nil {
 		base = http.DefaultTransport
 	}
-	return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-		req.Header.Set("User-Agent", userAgent)
-		return base.RoundTrip(req)
-	})
+	return RoundTripFunc(
+		func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("User-Agent", userAgent)
+			return base.RoundTrip(req)
+		},
+	)
 }
 
 // Auth0ClientInfoTransport wraps base transport with a customized "Auth0-Client" header.
@@ -215,10 +217,12 @@ func Auth0ClientInfoTransport(base http.RoundTripper, auth0ClientInfo *Auth0Clie
 
 	auth0ClientEncoded := base64.StdEncoding.EncodeToString(auth0ClientJSON)
 
-	return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-		req.Header.Set("Auth0-Client", auth0ClientEncoded)
-		return base.RoundTrip(req)
-	}), nil
+	return RoundTripFunc(
+		func(req *http.Request) (*http.Response, error) {
+			req.Header.Set("Auth0-Client", auth0ClientEncoded)
+			return base.RoundTrip(req)
+		},
+	), nil
 }
 
 func dumpRequest(r *http.Request) {
@@ -240,15 +244,17 @@ func DebugTransport(base http.RoundTripper, debug bool) http.RoundTripper {
 	if !debug {
 		return base
 	}
-	return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
-		dumpRequest(req)
-		res, err := base.RoundTrip(req)
-		if err != nil {
-			return res, err
-		}
-		dumpResponse(res)
-		return res, nil
-	})
+	return RoundTripFunc(
+		func(req *http.Request) (*http.Response, error) {
+			dumpRequest(req)
+			res, err := base.RoundTrip(req)
+			if err != nil {
+				return res, err
+			}
+			dumpResponse(res)
+			return res, nil
+		},
+	)
 }
 
 // Option is the type used to configure a client.

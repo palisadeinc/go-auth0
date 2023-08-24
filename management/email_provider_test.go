@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestEmailProviderJSON(t *testing.T) {
@@ -149,20 +149,24 @@ func TestEmailProviderJSON(t *testing.T) {
 	}
 
 	for _, testCase := range jsonTestCases {
-		t.Run(fmt.Sprintf(testCase.name, "marshal"), func(t *testing.T) {
-			actualJSON, err := json.Marshal(testCase.emailProvider)
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.json, string(actualJSON))
-		})
+		t.Run(
+			fmt.Sprintf(testCase.name, "marshal"), func(t *testing.T) {
+				actualJSON, err := json.Marshal(testCase.emailProvider)
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.json, string(actualJSON))
+			},
+		)
 	}
 
 	for _, testCase := range jsonTestCases {
-		t.Run(fmt.Sprintf(testCase.name, "unmarshal"), func(t *testing.T) {
-			var actualEmailProvider EmailProvider
-			err := json.Unmarshal([]byte(testCase.json), &actualEmailProvider)
-			assert.NoError(t, err)
-			assert.Equal(t, testCase.emailProvider, &actualEmailProvider)
-		})
+		t.Run(
+			fmt.Sprintf(testCase.name, "unmarshal"), func(t *testing.T) {
+				var actualEmailProvider EmailProvider
+				err := json.Unmarshal([]byte(testCase.json), &actualEmailProvider)
+				assert.NoError(t, err)
+				assert.Equal(t, testCase.emailProvider, &actualEmailProvider)
+			},
+		)
 	}
 }
 
@@ -184,9 +188,11 @@ func TestEmailProviderManager_Create(t *testing.T) {
 	err := api.EmailProvider.Create(context.Background(), emailProvider)
 	assert.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupEmailProvider(t)
-	})
+	t.Cleanup(
+		func() {
+			cleanupEmailProvider(t)
+		},
+	)
 }
 
 func TestEmailProviderManager_Read(t *testing.T) {
@@ -257,9 +263,11 @@ func givenAnEmailProvider(t *testing.T) *EmailProvider {
 		}
 	}
 
-	t.Cleanup(func() {
-		cleanupEmailProvider(t)
-	})
+	t.Cleanup(
+		func() {
+			cleanupEmailProvider(t)
+		},
+	)
 
 	return emailProvider
 }

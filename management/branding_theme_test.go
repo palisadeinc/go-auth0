@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/auth0/go-auth0"
+	"github.com/palisadeinc/go-auth0"
 )
 
 func TestBrandingThemeManager_Default(t *testing.T) {
@@ -102,9 +102,11 @@ func TestBrandingThemeManager_Create(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, expectedTheme.GetID())
 
-	t.Cleanup(func() {
-		cleanupBrandingTheme(t, expectedTheme.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupBrandingTheme(t, expectedTheme.GetID())
+		},
+	)
 }
 
 func TestBrandingThemeManager_Read(t *testing.T) {
@@ -299,9 +301,11 @@ func givenABrandingTheme(t *testing.T) *BrandingTheme {
 	err := api.BrandingTheme.Create(context.Background(), theme)
 	require.NoError(t, err)
 
-	t.Cleanup(func() {
-		cleanupBrandingTheme(t, theme.GetID())
-	})
+	t.Cleanup(
+		func() {
+			cleanupBrandingTheme(t, theme.GetID())
+		},
+	)
 
 	return theme
 }
